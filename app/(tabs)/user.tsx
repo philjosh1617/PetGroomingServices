@@ -64,11 +64,11 @@ export default function ProfileScreen() {
                   style={styles.petImage}
                 />
                 <Text style={styles.petName}>Mochi</Text>
-                <Text style={styles.petBreed}>Persian Cat</Text>
+                <Text style={styles.petBreed}>Pe</Text>
               </View>
 
-              <TouchableOpacity style={styles.addPetBtn}>
-                <Ionicons name="add-circle-outline" size={30} color="#333" />
+            <TouchableOpacity style={styles.addPetBtn} onPress={() => router.push("/aboutpet")}>
+                <Ionicons name="add-circle-outline" size={30} color="#ffffffff" />
                 <Text style={styles.addText}>Add Pet</Text>
               </TouchableOpacity>
             </ScrollView>
@@ -192,8 +192,6 @@ const styles = StyleSheet.create({
     marginBottom: 10 
   },
 
-
-
   petCard: {
     backgroundColor: "#fff",
     borderRadius: 12,
@@ -220,7 +218,7 @@ const styles = StyleSheet.create({
   },
 
   addPetBtn: {
-    backgroundColor: "#FFD180",
+    backgroundColor: "#000000ff",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",

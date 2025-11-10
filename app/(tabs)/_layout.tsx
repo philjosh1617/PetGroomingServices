@@ -153,7 +153,7 @@ const handleLogout = () => {
         <View style={styles.menuContent}>
           <Text style={styles.menuHeader}>Menu</Text>
           <View style={styles.line} />
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => router.push("/h&s")}>
             <Text style={styles.menuItem}>Help/Support</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => router.push("/aboutUs")}>
