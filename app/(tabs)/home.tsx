@@ -9,6 +9,7 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
 import { useRouter } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient"; 
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.75; // Main card width (shows peek of next)
@@ -135,7 +136,7 @@ const Home = () => {
           </View>
 
           {/* Promo Card */}
-          <View style={styles.promoCard}>
+          <LinearGradient colors={["#FF8C00", "#FFB84D"]} style={styles.promoCard}>
             <Text style={styles.promoTitle}>SPECIAL OFFER</Text>
             <Text style={styles.promoText}>
               Get 20% off on your first grooming session!
@@ -143,7 +144,7 @@ const Home = () => {
             <TouchableOpacity style={styles.promoButton}>
               <Text style={styles.promoButtonText}>Book Now</Text>
             </TouchableOpacity>
-          </View>
+          </LinearGradient>
 
           {/* Popular Services */}
           <Text style={styles.sectionTitle}>Popular Services</Text>
