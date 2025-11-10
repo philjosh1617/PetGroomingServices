@@ -52,22 +52,32 @@ const handleLogout = () => {
       {/* Animated Tabs shifting left when menu opens */}
       <Animated.View style={{ flex: 1, transform: [{ translateX: anim }] }}>
         <Tabs
-          screenOptions={{
-            tabBarActiveTintColor: "#fff",
-            tabBarInactiveTintColor: "#a5550aff",
+            screenOptions={{
             headerShown: false,
+            tabBarActiveTintColor: "#fff",
+            tabBarInactiveTintColor: "rgba(255,255,255,0.7)",
+            tabBarLabelPosition: "below-icon",
+            tabBarLabelStyle: {
+              fontSize: 10,
+              fontWeight: "600",
+              marginTop: 4,
+            },
+            tabBarItemStyle: {
+              justifyContent: "center",
+              alignItems: "center",
+            },
             tabBarStyle: {
               backgroundColor: "#FF8C00",
               position: "absolute",
-              bottom: 40,
-              borderRadius: 10,
-              height: 50,
-              marginHorizontal: 15,
-              elevation: 5,
-            },
-            tabBarLabelStyle: {
-              fontSize: 9,
-              fontWeight: "500",
+              height: 70,
+              paddingTop: 8,
+              paddingBottom: 8,
+              borderTopWidth: 0,
+              elevation: 10,
+              shadowColor: "#000",
+              shadowOpacity: 0.15,
+              shadowOffset: { width: 0, height: -2 },
+              shadowRadius: 4,
             },
             tabBarButton: (props) => (
               <Pressable
@@ -86,7 +96,7 @@ const handleLogout = () => {
             options={{
               title: "Home",
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="home-outline" size={size} color={color} />
+                <Ionicons name="home" size={size} color={color} />
               ),
             }}
           />
@@ -95,7 +105,7 @@ const handleLogout = () => {
             options={{
               title: "Booking",
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="calendar-outline" size={size} color={color} />
+                <Ionicons name="calendar" size={size} color={color} />
               ),
             }}
           />
@@ -113,7 +123,7 @@ const handleLogout = () => {
             options={{
               title: "Appointments",
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="clipboard-outline" size={size} color={color} />
+                <Ionicons name="clipboard" size={size} color={color} />
               ),
             }}
           />
@@ -122,7 +132,7 @@ const handleLogout = () => {
             options={{
               title: "Profile",
               tabBarIcon: ({ color, size }) => (
-                <Ionicons name="person-outline" size={size} color={color} />
+                <Ionicons name="person" size={size} color={color} />
               ),
             }}
           />
@@ -194,13 +204,22 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 12,
   },
-  menuContent: { paddingHorizontal: 20 },
+  menuContent: { 
+    paddingHorizontal: 20 
+  },
   menuHeader: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#143470",
     marginBottom: 10,
   },
-  line: { height: 1, backgroundColor: "#ccc", marginBottom: 15 },
-  menuItem: { fontSize: 16, fontWeight: "700", marginVertical: 10 },
+  line: { 
+    height: 1, 
+    backgroundColor: "#ccc", 
+    marginBottom: 15 },
+  menuItem: { 
+    fontSize: 16, 
+    fontWeight: "700", 
+    marginVertical: 10 
+  },
 });
