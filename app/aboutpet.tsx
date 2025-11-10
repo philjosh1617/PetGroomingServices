@@ -8,7 +8,8 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  Image, // Added Image import
+  Image,
+  TextInput, // Added TextInput import
 } from 'react-native';
 
 type PetSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'XLARGE';
@@ -17,6 +18,9 @@ type PetGender = 'BOY' | 'GIRL';
 const PetProfileScreen = () => {
   const [selectedGender, setSelectedGender] = useState<PetGender>('BOY');
   const [selectedSize, setSelectedSize] = useState<PetSize>('MEDIUM');
+  const [petName, setPetName] = useState('');
+  const [petBreed, setPetBreed] = useState('');
+  const [petAge, setPetAge] = useState('');
 
   const sizes = [
     { size: 'SMALL', kg: '<15kg' },
@@ -69,24 +73,46 @@ const PetProfileScreen = () => {
           {/* Name */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>NAME</Text>
-            <View style={styles.infoValue}>
-              <Text style={styles.infoText}>Enter name</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter name"
+                placeholderTextColor="#999"
+                value={petName}
+                onChangeText={setPetName}
+                maxLength={50}
+              />
             </View>
           </View>
 
           {/* Breed */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>BREED</Text>
-            <View style={styles.infoValue}>
-              <Text style={styles.infoText}>Enter breed</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter breed"
+                placeholderTextColor="#999"
+                value={petBreed}
+                onChangeText={setPetBreed}
+                maxLength={50}
+              />
             </View>
           </View>
 
           {/* Age */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>AGE</Text>
-            <View style={styles.infoValue}>
-              <Text style={styles.infoText}>Enter age</Text>
+            <View style={styles.inputContainer}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="Enter age"
+                placeholderTextColor="#999"
+                value={petAge}
+                onChangeText={setPetAge}
+                keyboardType="numeric"
+                maxLength={10}
+              />
             </View>
           </View>
 
@@ -251,7 +277,7 @@ header: {
     borderWidth: 2,
     borderColor: '#E0E0E0',
     borderStyle: 'dashed',
-    overflow: 'hidden', // Added to keep image within rounded borders
+    overflow: 'hidden',
   },
   photoItem: {
     width: '100%',
@@ -280,16 +306,16 @@ header: {
     color: '#333',
     marginBottom: 8,
   },
-  infoValue: {
+  inputContainer: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
-    padding: 12,
     backgroundColor: '#F8F9FA',
   },
-  infoText: {
-    color: '#666',
+  textInput: {
+    padding: 12,
     fontSize: 16,
+    color: '#333',
   },
   // Gender Styles
   genderContainer: {

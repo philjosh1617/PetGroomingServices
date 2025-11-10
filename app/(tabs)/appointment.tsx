@@ -6,33 +6,29 @@ import { useRouter } from "expo-router";
 
 type Appointment = {
   id: string;
-  pet: string;
   service: string;
   date: string;
-  status: "Pending" | "Confirmed" | "Completed" | "Cancelled";
+  status: "Pending" | "Complete";
 };
 
 const appointments: Appointment[] = [
   {
     id: "1",
-    pet: "Buddy 🐶",
-    service: "Grooming",
-    date: "Sept 20, 2025 | 2:00 PM",
-    status: "Confirmed",
+    service: "Nail Trimming | Flea Treatment",
+    date: "Nov 11, 2025 / 1:30 PM",
+    status: "Complete",
   },
   {
     id: "2",
-    pet: "Mittens 🐱",
-    service: "Vaccination",
-    date: "Sept 22, 2025 | 11:00 AM",
+    service: "Full Grooming",
+    date: "Nov 11, 2025 / 1:30 PM",
     status: "Pending",
   },
   {
     id: "3",
-    pet: "Charlie 🐕",
-    service: "Check-up",
-    date: "Sept 25, 2025 | 4:30 PM",
-    status: "Completed",
+    service: "Full Grooming",
+    date: "Nov 9, 2025 / 3:00 PM",
+    status: "Pending",
   },
 ];
 
@@ -52,14 +48,10 @@ export default function AppointmentScreen() {
 
   const renderStatusColor = (status: string) => {
     switch (status) {
-      case "Confirmed":
-        return { backgroundColor: "green" };
+      case "Complete":
+        return { backgroundColor: "#143470" };
       case "Pending":
-        return { backgroundColor: "orange" };
-      case "Completed":
-        return { backgroundColor: "blue" };
-      case "Cancelled":
-        return { backgroundColor: "red" };
+        return { backgroundColor: "#FFA500" };
       default:
         return { backgroundColor: "gray" };
     }
@@ -87,13 +79,30 @@ export default function AppointmentScreen() {
           contentContainerStyle={{ padding: 16 }}
           renderItem={({ item }) => (
             <View style={styles.card}>
-              <Text style={styles.petName}>{item.pet}</Text>
-              <Text style={styles.text}>Service: {item.service}</Text>
-              <Text style={styles.text}>Date: {item.date}</Text>
+              {/* Section Header */}
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>Types of Services</Text>
+              </View>
+              
+              {/* Service and Date */}
+              <View style={styles.serviceRow}>
+                <Text style={styles.serviceLabel}>Service:</Text>
+                <Text style={styles.serviceText}>{item.service}</Text>
+              </View>
+              
+              <View style={styles.dateRow}>
+                <Text style={styles.dateLabel}>Date:</Text>
+                <Text style={styles.dateText}>{item.date}</Text>
+              </View>
 
-              {/* Status Badge */}
-              <View style={[styles.statusBadge, renderStatusColor(item.status)]}>
-                <Text style={styles.statusText}>{item.status}</Text>
+              {/* Separator Line */}
+              <View style={styles.separator} />
+
+              {/* Status Section */}
+              <View style={styles.statusSection}>
+                <View style={[styles.statusBadge, renderStatusColor(item.status)]}>
+                  <Text style={styles.statusText}>{item.status}</Text>
+                </View>
               </View>
             </View>
           )}
@@ -140,34 +149,88 @@ const styles = StyleSheet.create({
   notificationIcon: {
     padding: 8,
   },
+  
   card: {
     backgroundColor: "#f9f9f9",
     padding: 16,
     borderRadius: 10,
-    marginBottom: 12,
+    marginBottom: 16,
     elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.5,
   },
-  petName: {
-    fontSize: 18,
+  
+  sectionHeader: {
+    marginBottom: 12,
+  },
+  
+  sectionTitle: {
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 4,
+    color: "#333",
   },
-  text: {
+  
+  serviceRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+  },
+  
+  serviceLabel: {
     fontSize: 14,
-    marginBottom: 2,
+    fontWeight: "600",
+    color: "#333",
+    width: 70,
   },
+  
+  serviceText: {
+    fontSize: 14,
+    color: "#333",
+    flex: 1,
+  },
+  
+  dateRow: {
+    flexDirection: "row",
+    marginBottom: 12,
+  },
+  
+  dateLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#333",
+    width: 70,
+  },
+  
+  dateText: {
+    fontSize: 14,
+    color: "#333",
+    flex: 1,
+  },
+  
+  separator: {
+    height: 1,
+    backgroundColor: "#ddd",
+    marginVertical: 8,
+  },
+  
+  statusSection: {
+    marginTop: 8,
+  },
+  
   statusBadge: {
     alignSelf: "flex-start",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     borderRadius: 12,
-    marginTop: 6,
   },
+  
   statusText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 12,
   },
+  
   empty: {
     textAlign: "center",
     marginTop: 50,

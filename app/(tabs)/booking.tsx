@@ -43,7 +43,7 @@ export default function Booking() {
         <View style={styles.buttonWrapper}>
           <TouchableOpacity
             style={styles.selectButton}
-            onPress={() => router.push("/services")}
+            onPress={() => router.push("/Services")}
           >
             <Text style={styles.selectButtonText}>SERVICE & APPOINTMENT</Text>
           </TouchableOpacity>

@@ -53,7 +53,7 @@ const services: Service[] = [
     price: "₱150",
     image: require("../../assets/images/service4.png"),
     description:
-      "Careful nail trimming to keep your pet’s paws neat and comfortable – no stress!",
+      "Careful nail trimming to keep your pet's paws neat and comfortable – no stress!",
   },
   {
     id: "5",
@@ -95,6 +95,11 @@ export default function Services() {
   const filteredServices = services.filter((service) =>
     service.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleStartAppointment = () => {
+    setSelectedService(null); // Close modal
+    router.push("/Services"); // Navigate to Services screen
+  };
 
   const renderService = ({ item }: { item: Service }) => (
     <TouchableOpacity
@@ -168,11 +173,18 @@ export default function Services() {
                   <Text style={styles.modalDescription}>{selectedService.description}</Text>
                   <Text style={styles.modalPrice}>Price: {selectedService.price}</Text>
 
-                  <TouchableOpacity style={styles.bookButton}>
+                  <TouchableOpacity 
+                    style={styles.bookButton}
+                    onPress={handleStartAppointment}
+                    activeOpacity={0.7}
+                  >
                     <Text style={styles.bookButtonText}>Start Appointment</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity onPress={() => setSelectedService(null)}>
+                  <TouchableOpacity 
+                    onPress={() => setSelectedService(null)}
+                    activeOpacity={0.7}
+                  >
                     <Text style={styles.closeText}>Close</Text>
                   </TouchableOpacity>
                 </>
