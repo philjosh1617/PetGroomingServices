@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Added icon import
 
 type NavItem = {
   id: string;
@@ -52,6 +53,10 @@ const StatusScreen = () => {
     },
   ]);
 
+  const handleBackPress = () => {
+    router.push('/payment'); // Navigate to payment screen
+  };
+
   const handleNavPress = (id: string) => {
     setNavigationItems(prevItems =>
       prevItems.map(item => ({
@@ -85,8 +90,15 @@ const StatusScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      {/* Header */}
+      {/* Header with Back Button */}
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={handleBackPress}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
         <Text style={styles.pageTitle}>BOOK APPOINTMENT</Text>
       </View>
 
@@ -185,15 +197,23 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 12,
     backgroundColor: "#143470",
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 50,
+    zIndex: 10,
+    padding: 8,
   },
   pageTitle: {
-    fontSize: 35,
+    fontSize: 28, // Reduced from 35 to fit better with back button
     color: "#ffffffff",
     fontFamily: "LuckiestGuy",
     textShadowColor: "rgba(0,0,0,1)",
@@ -202,6 +222,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
     width: '100%',
+    marginLeft: 15, // Compensate for back button space
   },
   navBar: {
     flexDirection: 'row',
@@ -315,7 +336,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: '#FFA500',
+    backgroundColor: '#DB6309',
     padding: 20,
     alignItems: 'center',
     justifyContent: 'center',

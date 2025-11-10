@@ -3,19 +3,32 @@ import {
   View,
   Text,
   ScrollView,
+  TouchableOpacity,
   StyleSheet,
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Added icon import
+import { router } from 'expo-router'; // Added router import
 
 const HelpSupportScreen = () => {
+  const handleBackPress = () => {
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* Header */}
+        {/* Header with Back Button */}
         <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => router.back()}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.pageTitle}>HELP/SUPPORT</Text>
         </View>
 
@@ -79,15 +92,23 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
   },
-  // Header
+  // Header with Back Button
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 12,
     backgroundColor: "#143470",
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 50,
+    zIndex: 10,
+    padding: 8,
   },
   pageTitle: {
     fontSize: 28,
@@ -99,6 +120,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
     width: '100%',
+    marginLeft: -24, // Compensate for back button space
   },
   // Gray Background Container
   contentContainer: {

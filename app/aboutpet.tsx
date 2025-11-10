@@ -8,9 +8,9 @@ import {
   StyleSheet,
   SafeAreaView,
   StatusBar,
-  Image,
-  TextInput, // Added TextInput import
+  Image, // Added Image import
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Added icon import
 
 type PetSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'XLARGE';
 type PetGender = 'BOY' | 'GIRL';
@@ -18,9 +18,6 @@ type PetGender = 'BOY' | 'GIRL';
 const PetProfileScreen = () => {
   const [selectedGender, setSelectedGender] = useState<PetGender>('BOY');
   const [selectedSize, setSelectedSize] = useState<PetSize>('MEDIUM');
-  const [petName, setPetName] = useState('');
-  const [petBreed, setPetBreed] = useState('');
-  const [petAge, setPetAge] = useState('');
 
   const sizes = [
     { size: 'SMALL', kg: '<15kg' },
@@ -29,13 +26,24 @@ const PetProfileScreen = () => {
     { size: 'XLARGE', kg: '>35kg' }
   ];
 
+  const handleBackPress = () => {
+    router.push('/user'); // Navigate to user screen
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
     
       <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
-        {/* Main Header */}
+        {/* Main Header with Back Button */}
         <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={handleBackPress}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.pageTitle}>Pet Profile</Text>
         </View>
 
@@ -73,46 +81,24 @@ const PetProfileScreen = () => {
           {/* Name */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>NAME</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter name"
-                placeholderTextColor="#999"
-                value={petName}
-                onChangeText={setPetName}
-                maxLength={50}
-              />
+            <View style={styles.infoValue}>
+              <Text style={styles.infoText}>Enter name</Text>
             </View>
           </View>
 
           {/* Breed */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>BREED</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter breed"
-                placeholderTextColor="#999"
-                value={petBreed}
-                onChangeText={setPetBreed}
-                maxLength={50}
-              />
+            <View style={styles.infoValue}>
+              <Text style={styles.infoText}>Enter breed</Text>
             </View>
           </View>
 
           {/* Age */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>AGE</Text>
-            <View style={styles.inputContainer}>
-              <TextInput
-                style={styles.textInput}
-                placeholder="Enter age"
-                placeholderTextColor="#999"
-                value={petAge}
-                onChangeText={setPetAge}
-                keyboardType="numeric"
-                maxLength={10}
-              />
+            <View style={styles.infoValue}>
+              <Text style={styles.infoText}>Enter age</Text>
             </View>
           </View>
 
@@ -236,17 +222,24 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  // Main Header
-header: {
+  // Main Header with Back Button
+  header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 12,
     backgroundColor: "#143470",
+    position: 'relative',
   },
-
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 50,
+    zIndex: 10,
+    padding: 8,
+  },
   pageTitle: {
     fontSize: 35,
     color: "#ffffffff",
@@ -257,6 +250,7 @@ header: {
     letterSpacing: 1,
     textAlign: 'center',
     width: '100%',
+    marginLeft: -24, // Compensate for back button space
   },
   // Profile Section
   profileSection: {
@@ -277,7 +271,7 @@ header: {
     borderWidth: 2,
     borderColor: '#E0E0E0',
     borderStyle: 'dashed',
-    overflow: 'hidden',
+    overflow: 'hidden', // Added to keep image within rounded borders
   },
   photoItem: {
     width: '100%',
@@ -306,16 +300,16 @@ header: {
     color: '#333',
     marginBottom: 8,
   },
-  inputContainer: {
+  infoValue: {
     borderWidth: 1,
     borderColor: '#ddd',
     borderRadius: 8,
+    padding: 12,
     backgroundColor: '#F8F9FA',
   },
-  textInput: {
-    padding: 12,
+  infoText: {
+    color: '#666',
     fontSize: 16,
-    color: '#333',
   },
   // Gender Styles
   genderContainer: {

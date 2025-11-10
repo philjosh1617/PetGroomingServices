@@ -10,16 +10,28 @@ import {
   StatusBar,
   TextInput,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Added icon import
 
 const VaccineScreen = () => {
   const [expiryDate, setExpiryDate] = useState('');
+
+  const handleBackPress = () => {
+    router.push('/food&medical'); // Navigate to food&medical screen
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Header */}
+        {/* Header with Back Button */}
         <View style={styles.header}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={handleBackPress}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+          </TouchableOpacity>
           <Text style={styles.pageTitle}>Pet Profile</Text>
         </View>
 
@@ -110,15 +122,23 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontWeight: '600',
   },
-  // Main Header
+  // Main Header with Back Button
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 12,
     backgroundColor: "#143470",
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 50,
+    zIndex: 10,
+    padding: 8,
   },
   pageTitle: {
     fontSize: 28,
@@ -130,6 +150,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
     width: '100%',
+    marginLeft: -24, // Compensate for back button space
   },
   // Vaccine Section
   vaccineSection: {

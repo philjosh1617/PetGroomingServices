@@ -10,6 +10,7 @@ import {
   StatusBar,
   Modal,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons'; // Added icon import
 
 type TimeSlot = {
   id: string;
@@ -63,6 +64,10 @@ const AppointmentBooking = () => {
     'November 15, 2025',
   ];
 
+  const handleBackPress = () => {
+    router.push('/Services'); // Navigate to Services screen
+  };
+
   const toggleDaySelection = (id: string) => {
     setDays(prevDays => 
       prevDays.map(day => 
@@ -97,8 +102,15 @@ const AppointmentBooking = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
       
-      {/* Header */}
+      {/* Header with Back Button */}
       <View style={styles.header}>
+        <TouchableOpacity 
+          style={styles.backButton}
+          onPress={handleBackPress}
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
         <Text style={styles.pageTitle}>BOOK APPOINTMENT</Text>
       </View>
 
@@ -253,15 +265,23 @@ const styles = StyleSheet.create({
   },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-start",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 50,
     paddingBottom: 12,
     backgroundColor: "#143470",
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 50,
+    zIndex: 10,
+    padding: 8,
   },
   pageTitle: {
-    fontSize: 35,
+    fontSize: 28, // Reduced from 35 to fit better with back button
     color: "#ffffffff",
     fontFamily: "LuckiestGuy",
     textShadowColor: "rgba(0,0,0,1)",
@@ -270,6 +290,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     textAlign: 'center',
     width: '100%',
+    marginLeft: 15, // Compensate for back button space
   },
   navBar: {
     flexDirection: 'row',
