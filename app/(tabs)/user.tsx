@@ -10,7 +10,7 @@ export default function ProfileScreen() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/background.png")}
+      source={require("../../assets/images/homebg.png")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
@@ -218,7 +218,7 @@ const styles = StyleSheet.create({
   },
 
   addPetBtn: {
-    backgroundColor: "#000000ff",
+    backgroundColor: "#FFD180",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",

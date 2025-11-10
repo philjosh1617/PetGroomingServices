@@ -67,7 +67,7 @@ export default function AppointmentScreen() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/background.png")}
+      source={require("../../assets/images/homebg.png")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >

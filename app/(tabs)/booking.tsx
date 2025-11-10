@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
@@ -6,11 +6,10 @@ import { useRouter } from "expo-router";
 
 export default function Booking() {
   const router = useRouter();
+
   const [fontsLoaded] = useFonts({
     LuckiestGuy_400Regular,
   });
-
-  const [selectedPet, setSelectedPet] = useState<string | null>(null);
 
   if (!fontsLoaded) {
     return (
@@ -22,59 +21,31 @@ export default function Booking() {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/background.png")}
+      source={require("../../assets/images/homebg.png")}
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      {/* Header */}
+      {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.pageTitle}>BOOKING</Text>
-        <TouchableOpacity style={styles.notificationIcon} onPress={() => router.push("/notification")}>
+        <TouchableOpacity onPress={() => router.push("/notification")}>
           <Ionicons name="notifications" size={26} color="#fff" />
         </TouchableOpacity>
       </View>
 
-      {/* Centered Main Content */}
+      {/* MAIN CONTENT */}
       <View style={styles.container}>
-        {/* Title */}
-        <Text style={styles.chooseText}>Choose a pet type</Text>
+        <Text style={styles.headingText}>Ready to Book?</Text>
+        <Text style={styles.subText}>
+          Schedule grooming and wellness services for your pet with ease.
+        </Text>
 
-        {/* Pet Options */}
-        <View style={styles.petContainer}>
-          <TouchableOpacity
-            style={[
-              styles.petCard,
-              { backgroundColor: "#B22222" }, // red for cat
-              selectedPet === "cat" && styles.activeCard,
-            ]}
-            onPress={() => setSelectedPet("cat")}
-          >
-            <Text style={styles.petText}>CAT</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.petCard,
-              { backgroundColor: "#FF8C00" }, // orange for dog
-              selectedPet === "dog" && styles.activeCard,
-            ]}
-            onPress={() => setSelectedPet("dog")}
-          >
-            <Text style={styles.petText}>DOG</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Select Button */}
         <View style={styles.buttonWrapper}>
           <TouchableOpacity
-            style={[
-              styles.selectButton,
-              !selectedPet && { backgroundColor: "#ccc" },
-            ]}
-            disabled={!selectedPet}
-            onPress={() => alert(`You selected: ${selectedPet?.toUpperCase()}`)}
+            style={styles.selectButton}
+            onPress={() => router.push("/services")}
           >
-            <Text style={styles.selectButtonText}>Select</Text>
+            <Text style={styles.selectButtonText}>SERVICE & APPOINTMENT</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -108,66 +79,46 @@ const styles = StyleSheet.create({
     textShadowRadius: 1,
     letterSpacing: 1,
   },
-  notificationIcon: {
-    padding: 8,
-  },
 
   container: {
     flex: 1,
     alignItems: "center",
-    marginTop: 150,
+    justifyContent: "center",
+    paddingHorizontal: 20,
+    marginBottom: 150,
   },
 
-  chooseText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#000",
-    marginBottom: 60,
+  headingText: {
+    fontSize: 28,
+    color: "#143470",
+    fontFamily: "LuckiestGuy_400Regular",
+    textAlign: "center",
+    marginBottom: 8,
   },
 
-  petContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    width: "100%",
+  subText: {
+    fontSize: 14,
+    color: "#555",
+    textAlign: "center",
+    lineHeight: 20,
     paddingHorizontal: 20,
   },
 
-  petCard: {
-    width: 140,
-    height: 160,
-    borderRadius: 15,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 5,
-  },
-
-  activeCard: {
-    borderWidth: 3,
-    borderColor: "#fff",
-  },
-
-  petText: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-
   buttonWrapper: {
-    alignItems: "center",
     marginTop: 40,
   },
 
   selectButton: {
     backgroundColor: "#FF8C00",
     paddingVertical: 15,
-    paddingHorizontal: 80,
-    borderRadius: 5,
+    paddingHorizontal: 70,
+    borderRadius: 8,
     elevation: 5,
   },
 
   selectButtonText: {
     color: "#fff",
     fontWeight: "bold",
-    fontSize: 18,
+    fontSize: 17,
   },
 });
