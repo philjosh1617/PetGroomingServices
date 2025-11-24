@@ -22,7 +22,7 @@ const VaccineScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      
         {/* Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity 
@@ -53,7 +53,7 @@ const VaccineScreen = () => {
             <Text style={styles.tabText}>Confirmation</Text>
           </TouchableOpacity>
         </View>
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* RABIES VACCINATION Section */}
         <View style={styles.vaccineSection}>
           <Text style={styles.vaccineTitle}>RABIES VACCINATION</Text>

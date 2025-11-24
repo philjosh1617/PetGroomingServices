@@ -34,7 +34,7 @@ const PetProfileScreen = () => {
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
     
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
+      
         {/* Main Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity 
@@ -47,25 +47,27 @@ const PetProfileScreen = () => {
           <Text style={styles.pageTitle}>Pet Profile</Text>
         </View>
 
+      
         {/* Tab Navigation Header */}
-      <View style={styles.tabContainer}>
-        <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-          <Text style={[styles.tabText, styles.activeTabText]}>About Pet</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.tab}>
-          <Text style={styles.tabText}>Food & Medical</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.tab}>
-          <Text style={styles.tabText}>Vaccine</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.tab}>
-          <Text style={styles.tabText}>Confirmation</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.tabContainer}>
+          <TouchableOpacity style={[styles.tab, styles.activeTab]}>
+            <Text style={[styles.tabText, styles.activeTabText]}>About Pet</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.tab}>
+            <Text style={styles.tabText}>Food & Medical</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.tab}>
+            <Text style={styles.tabText}>Vaccine</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.tab}>
+            <Text style={styles.tabText}>Confirmation</Text>
+          </TouchableOpacity>
+        </View>
 
+      <ScrollView showsVerticalScrollIndicator={false} style={styles.scrollView}>
 
         {/* Profile Picture Section */}
         <View style={styles.profileSection}>

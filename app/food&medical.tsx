@@ -26,7 +26,7 @@ const MedicalConditionScreen = ({ navigation }: any) => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      
         {/* Header with Back Button */}
         <View style={styles.header}>
           <TouchableOpacity 
@@ -57,7 +57,7 @@ const MedicalConditionScreen = ({ navigation }: any) => {
             <Text style={styles.tabText}>Confirmation</Text>
           </TouchableOpacity>
         </View>
-
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Medical Condition Section - Lowered by reducing marginTop */}
         <View style={[styles.section, styles.medicalSection]}>
           <Text style={styles.sectionTitle}>MEDICAL CONDITION?</Text>

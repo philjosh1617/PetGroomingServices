@@ -15,7 +15,7 @@ export default function ProfileScreen() {
       resizeMode="cover"
     >
       <View style={styles.container}>
-        <ScrollView>
+        
           {/* HEADER */}
           <View style={styles.header}>
             <Text style={styles.pageTitle}>PROFILE</Text>
@@ -31,14 +31,15 @@ export default function ProfileScreen() {
               </TouchableOpacity>
             </View>
           </View>
-
+          
+          <ScrollView>
           {/* PROFILE SECTION */}
           <View style={styles.profile}>
             <Image
-              source={require("../../assets/images/owner.jpg")}
+              source={require("../../assets/images/olaf.jpg")}
               style={styles.avatar}
             />
-            <Text style={styles.name}>Phil Josh Burlat</Text>
+            <Text style={styles.name}>OLAF PATAY</Text>
             <Text style={styles.email}>levi@yahoo.com</Text>
             <TouchableOpacity style={styles.editBtn}>
               <Text style={styles.editText}>Edit Profile</Text>
@@ -60,7 +61,7 @@ export default function ProfileScreen() {
 
               <View style={styles.petCard}>
                 <Image
-                  source={require("../../assets/images/cat1.jpg")}
+                  source={require("../../assets/images/olaf.jpg")}
                   style={styles.petImage}
                 />
                 <Text style={styles.petName}>Mochi</Text>

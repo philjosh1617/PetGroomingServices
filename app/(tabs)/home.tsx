@@ -194,8 +194,12 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
-  container: { flex: 1 },
-  scrollView: { flex: 1 },
+  container: { 
+    flex: 1 
+  },
+  scrollView: { 
+    flex: 1 
+  },
 
   header: {
     flexDirection: "row",
@@ -214,7 +218,9 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 2,
   },
-  notificationIcon: { padding: 8 },
+  notificationIcon: { 
+    padding: 8 
+  },
 
   // 🐾 Pet Profile Carousel
   petProfileCard: {
@@ -269,7 +275,10 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
   },
-  startAppointmentText: { color: "#000", fontWeight: "bold" },
+  startAppointmentText: { 
+    color: "#000", 
+    fontWeight: "bold" 
+  },
 
   addPetCard: {
     backgroundColor: "#EAF0FF",
@@ -296,7 +305,13 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 3,
   },
-  promoTitle: { fontSize: 16, fontWeight: "bold", color: "#fff", marginBottom: 4 },
+  promoTitle: { 
+    fontSize: 16, 
+    fontWeight: "bold", 
+    color: "#fff", 
+    marginBottom: 4 
+  },
+
   promoText: {
     fontSize: 18,
     color: "#fff",
