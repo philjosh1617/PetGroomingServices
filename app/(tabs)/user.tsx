@@ -36,10 +36,10 @@ export default function ProfileScreen() {
           {/* PROFILE SECTION */}
           <View style={styles.profile}>
             <Image
-              source={require("../../assets/images/olaf.jpg")}
+              source={require("../../assets/images/user.jpg")}
               style={styles.avatar}
             />
-            <Text style={styles.name}>OLAF PATAY</Text>
+            <Text style={styles.name}>Phil Josh Burlat</Text>
             <Text style={styles.email}>levi@yahoo.com</Text>
             <TouchableOpacity style={styles.editBtn}>
               <Text style={styles.editText}>Edit Profile</Text>
@@ -68,7 +68,7 @@ export default function ProfileScreen() {
                 <Text style={styles.petBreed}>Pe</Text>
               </View>
 
-            <TouchableOpacity style={styles.addPetBtn} onPress={() => router.push("/aboutpet")}>
+            <TouchableOpacity style={styles.addPetBtn} onPress={() => router.push("/PetProfile/aboutpet")}>
                 <Ionicons name="add-circle-outline" size={30} color="#ffffffff" />
                 <Text style={styles.addText}>Add Pet</Text>
               </TouchableOpacity>
@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 28,
     color: "#fff",
-    fontFamily: "LuckiestGuy",
+    fontFamily: "LuckiestGuy_400Regular",
     textShadowColor: "rgba(0,0,0,1)",
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 1,

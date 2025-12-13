@@ -1,17 +1,6 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  TouchableOpacity,
-  FlatList,
-  Modal,
-  TextInput,
-  ImageBackground,
-} from "react-native";
+import {  View,  Text,  StyleSheet,  Image,TouchableOpacity, FlatList,Modal, TextInput,  ImageBackground,} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
 import { useRouter } from "expo-router";
 
 type Service = {
@@ -86,11 +75,6 @@ export default function Services() {
   const [search, setSearch] = useState("");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
 
-  const [fontsLoaded] = useFonts({
-    LuckiestGuy_400Regular,
-  });
-
-  if (!fontsLoaded) return <View><Text>Loading...</Text></View>;
 
   const filteredServices = services.filter((service) =>
     service.name.toLowerCase().includes(search.toLowerCase())

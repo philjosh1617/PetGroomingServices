@@ -8,21 +8,10 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
+
 
 export default function NotificationScreen() {
   const router = useRouter();
-  const [fontsLoaded] = useFonts({
-    LuckiestGuy_400Regular,
-  });
-
-  if (!fontsLoaded) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={styles.container}>
@@ -94,11 +83,6 @@ export default function NotificationScreen() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
 
   container: {
     flex: 1,
@@ -120,12 +104,12 @@ const styles = StyleSheet.create({
   },
 
   pageTitle: {
-    fontSize: 26,
+    fontSize: 28,
     color: "#fff",
-    fontFamily: "LuckiestGuy_400Regular",
+    fontFamily: "LuckiestGuy",
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 1,
+    textShadowRadius: 2,
     letterSpacing: 1,
   },
 

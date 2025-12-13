@@ -1,15 +1,10 @@
 import React from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet, Image, ImageBackground, Dimensions,
-} from "react-native";
+import {View,Text,ScrollView,TouchableOpacity,StyleSheet, Image, ImageBackground, Dimensions,} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
 import { useRouter } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient"; 
+
+
 
 const { width } = Dimensions.get("window");
 const CARD_WIDTH = width * 0.75; // Main card width (shows peek of next)
@@ -17,17 +12,9 @@ const CARD_SPACING = 16;
 
 const Home = () => {
   const router = useRouter();
-  const [fontsLoaded] = useFonts({
-    LuckiestGuy: LuckiestGuy_400Regular,
-  });
 
-  if (!fontsLoaded) {
-    return (
-      <View>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
+ 
+
 
   // 🐾 Dummy pets data
   const pets = [
@@ -213,7 +200,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 28,
     color: "#fff",
-    fontFamily: "LuckiestGuy",
+    fontFamily: "LuckiestGuy_400Regular",
     textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 2,

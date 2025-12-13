@@ -1,7 +1,6 @@
 import React from "react";
 import {View,Text,StyleSheet, FlatList, TouchableOpacity, ImageBackground} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
 import { useRouter } from "expo-router";
 
 type Appointment = {
@@ -34,17 +33,6 @@ const appointments: Appointment[] = [
 
 export default function AppointmentScreen() {
   const router = useRouter();
-  const [fontsLoaded] = useFonts({
-    LuckiestGuy_400Regular,
-  });
-
-  if (!fontsLoaded) {
-    return (
-      <View>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
 
   const renderStatusColor = (status: string) => {
     switch (status) {
@@ -139,7 +127,7 @@ const styles = StyleSheet.create({
   pageTitle: {
     fontSize: 28,
     color: "#fff",
-    fontFamily: "LuckiestGuy",
+    fontFamily: "LuckiestGuy_400Regular",
     textShadowColor: "rgba(0, 0, 0, 1)",
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 1,

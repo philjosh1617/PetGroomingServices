@@ -1,23 +1,12 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet, ImageBackground } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
 import { useRouter } from "expo-router";
 
 export default function Booking() {
   const router = useRouter();
 
-  const [fontsLoaded] = useFonts({
-    LuckiestGuy_400Regular,
-  });
 
-  if (!fontsLoaded) {
-    return (
-      <View>
-        <Text>Loading...</Text>
-      </View>
-    );
-  }
 
   return (
     <ImageBackground

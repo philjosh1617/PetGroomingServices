@@ -19,44 +19,48 @@ const MedicalConditionScreen = ({ navigation }: any) => {
   const [behavioralExplanation, setBehavioralExplanation] = useState('');
   const [preferredTreat, setPreferredTreat] = useState('');
 
-  const handleBackPress = () => {
-    router.push('/aboutpet'); // Navigate to aboutpet screen
-  };
+  const isMedicalSectionValid =
+  hasMedicalCondition !== null &&
+  (hasMedicalCondition === false || medicalExplanation.trim() !== '');
+
+  const isBehavioralSectionValid =
+    hasBehavioralConcerns !== null &&
+    (hasBehavioralConcerns === false || behavioralExplanation.trim() !== '');
+
+  const isFormComplete =
+    isMedicalSectionValid && isBehavioralSectionValid;
+
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+ 
       
         {/* Header with Back Button */}
         <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={handleBackPress}
-            activeOpacity={0.7}
-          >
+          <TouchableOpacity onPress={() => router.push('/PetProfile/aboutpet')}>
             <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
           <Text style={styles.pageTitle}>Pet Profile</Text>
+
+          <View style={{ width: 26 }} />
         </View>
 
         {/* Tab Navigation Header */}
         <View style={styles.tabContainer}>
           <TouchableOpacity style={styles.tab}>
             <Text style={styles.tabText}>About Pet</Text>
-          </TouchableOpacity>
-          
+          </TouchableOpacity>        
           <TouchableOpacity style={[styles.tab, styles.activeTab]}>
             <Text style={[styles.tabText, styles.activeTabText]}>Food & Medical</Text>
-          </TouchableOpacity>
-          
+          </TouchableOpacity>          
           <TouchableOpacity style={styles.tab}>
             <Text style={styles.tabText}>Vaccine</Text>
-          </TouchableOpacity>
-          
+          </TouchableOpacity>          
           <TouchableOpacity style={styles.tab}>
             <Text style={styles.tabText}>Confirmation</Text>
           </TouchableOpacity>
         </View>
+
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         {/* Medical Condition Section - Lowered by reducing marginTop */}
         <View style={[styles.section, styles.medicalSection]}>
@@ -168,10 +172,13 @@ const MedicalConditionScreen = ({ navigation }: any) => {
         </View>
 
         {/* Next Button */}
-        <TouchableOpacity 
-          style={styles.nextButton}
-          onPress={() => router.push("/vaccine")}
-          activeOpacity={0.7}
+        <TouchableOpacity
+          style={[
+            styles.nextButton,
+            !isFormComplete && styles.nextButtonDisabled,
+          ]}
+          disabled={!isFormComplete}
+          onPress={() => router.push('/PetProfile/vaccine')}
         >
           <Text style={styles.nextButtonText}>NEXT</Text>
         </TouchableOpacity>
@@ -189,65 +196,46 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingBottom: 30,
   },
+
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 10,
     paddingVertical: 15,
     backgroundColor: 'lightgray',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
   },
   tab: {
     flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    marginHorizontal: 4,
     paddingVertical: 8,
     borderRadius: 6,
   },
-  activeTab: {
-    backgroundColor: '#DB6309',
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: '#000000ff',
-    textAlign: 'center',
-  },
-  activeTabText: {
-    color: '#FFFFFF',
-    fontWeight: '600',
-  },
+  activeTab: { backgroundColor: '#DB6309' },
+  tabText: { fontSize: 12, color: '#000' },
+  activeTabText: { color: '#fff' },
+
   // Main Header with Back Button
   header: {
     flexDirection: "row",
-    justifyContent: "flex-start",
     alignItems: "center",
-    paddingHorizontal: 20,
+    justifyContent: "space-between",
+    paddingHorizontal: 15,
     paddingTop: 50,
     paddingBottom: 12,
     backgroundColor: "#143470",
-    position: 'relative',
   },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 50,
-    zIndex: 10,
-    padding: 8,
-  },
+
   pageTitle: {
     fontSize: 28,
-    color: "#ffffffff",
-    fontFamily: "LuckiestGuy",
-    textShadowColor: "rgba(0,0,0,1)",
+    color: "#fff",
+    fontFamily: "LuckiestGuy_400Regular",
+    textShadowColor: "rgba(0,0,0,0.8)",
     textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 1,
+    textShadowRadius: 2,
     letterSpacing: 1,
-    textAlign: 'center',
-    width: '100%',
-    marginLeft: -24, // Compensate for back button space
   },
+
+
   section: {
     paddingHorizontal: 20,
     marginBottom: 30,
@@ -328,6 +316,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+
+  nextButtonDisabled: {
+  opacity: 0.5,
   },
 });
 
