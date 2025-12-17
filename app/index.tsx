@@ -1,699 +1,202 @@
-import React, { useEffect, useState, useCallback } from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Image,
-  ImageBackground,
-  Dimensions,
-  Alert,
-  RefreshControl,
-  ActivityIndicator,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { useRouter, useFocusEffect } from "expo-router";
-import { LinearGradient } from "expo-linear-gradient";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
-import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } from '@expo-google-fonts/poppins';
-import { LuckiestGuy_400Regular } from '@expo-google-fonts/luckiest-guy';
+import React, { useState, useEffect } from "react";
+import {  View,  Text, StyleSheet, TouchableOpacity, Image,} from "react-native";
+import { Link } from "expo-router";
+import { useFonts, LuckiestGuy_400Regular } from "@expo-google-fonts/luckiest-guy";
+import Animated, {  useSharedValue,  useAnimatedStyle,  withRepeat,  withTiming,  withSequence,} from "react-native-reanimated";
+import { MotiView, MotiText } from "moti";
+import { Easing } from "react-native-reanimated";
 
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = width * 0.75;
-const CARD_SPACING = 16;
-const API_URL = 'http://192.168.100.19:3000/api/pets';
-const APPOINTMENTS_API_URL = 'http://192.168.100.19:3000/api/appointments';
+export default function Index() {
+  const [fontsLoaded] = useFonts({ LuckiestGuy_400Regular });
+  const [welcomeText, setWelcomeText] = useState("");
+  const [titleText, setTitleText] = useState("");
+  const [subtitleText, setSubtitleText] = useState("");
+  const [showUnderline, setShowUnderline] = useState(false);
+  const [showButton, setShowButton] = useState(false);
 
-interface Pet {
-  _id: string;
-  name: string;
-  breed: string;
-  size: string;
-  age?: string;
-  treat?: string;
-  medicalCondition?: string;
-  behavioralConcern?: string;
-  rabiesExpiry?: string;
-  profileImage: string;
-}
+  const scale = useSharedValue(0); 
 
-interface Appointment {
-  _id: string;
-  services: { serviceName: string; price: number }[];
-  appointmentDate: string;
-  appointmentTime: string;
-  status: string;
-  totalAmount: number;
-  petId: {
-    name: string;
-    profileImage: string;
-  };
-}
-
-const Home = () => {
-  const router = useRouter();
-  const [username, setUsername] = useState<string>("");
-  const [pets, setPets] = useState<Pet[]>([]);
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-
-  // Load fonts - MUST be called before any conditional returns
-  const [fontsLoaded] = useFonts({
-    Poppins_400Regular,
-    Poppins_600SemiBold,
-    Poppins_700Bold,
-    LuckiestGuy_400Regular,
-  });
-
-  // Fetch pets from backend
-  const fetchPets = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      if (!token) return;
-
-      const response = await axios.get(API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-        timeout: 10000,
-      });
-
-      setPets(response.data);
-    } catch (error: any) {
-      console.log("Failed to fetch pets:", error?.response?.data || error.message);
-    }
-  };
-
-  // Fetch appointments from backend
-  const fetchAppointments = async () => {
-    try {
-      const token = await AsyncStorage.getItem("token");
-      if (!token) return;
-
-      const response = await axios.get(APPOINTMENTS_API_URL, {
-        headers: { Authorization: `Bearer ${token}` },
-        timeout: 10000,
-      });
-
-      setAppointments(response.data);
-    } catch (error: any) {
-      console.log("Failed to fetch appointments:", error?.response?.data || error.message);
-    }
-  };
-
-  // Load user data and pets
-  const loadUserData = async () => {
-    try {
-      const userData = await AsyncStorage.getItem("user");
-      if (userData) {
-        const user = JSON.parse(userData);
-        setUsername(user.username);
-      }
-
-      await fetchPets();
-      await fetchAppointments();
-    } catch (error) {
-      console.log("Failed to load user data", error);
-    }
-  };
-
-  // Initial load
   useEffect(() => {
-    loadUserData();
+    // Delay logo pop until after "Welcome to.." shows
+    setTimeout(() => {
+      scale.value = withSequence(
+        withTiming(1.2, { duration: 800, easing: Easing.out(Easing.exp) }), // POP + BOING
+        withTiming(1, { duration: 500, easing: Easing.out(Easing.ease) }, () => {
+          // After bounce, start breathing effect forever
+          scale.value = withRepeat(
+            withTiming(1.05, { duration: 2000, easing: Easing.inOut(Easing.ease) }),
+            -1,
+            true
+          );
+        })
+      );
+    }, 3100); 
   }, []);
 
-  // Reload pets when screen comes into focus
-  useFocusEffect(
-    useCallback(() => {
-      fetchPets();
-      fetchAppointments();
-    }, [])
-  );
+  const animatedLogo = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
 
-  // Pull to refresh
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await fetchPets();
-    await fetchAppointments();
-    setRefreshing(false);
-  };
+  useEffect(() => {
+    const typeText = (
+      setter: React.Dispatch<React.SetStateAction<string>>,
+      message: string,
+      delay = 0,
+      onFinish?: () => void
+    ) => {
+      let i = 0;
+      setTimeout(() => {
+        const interval = setInterval(() => {
+          setter(message.slice(0, i++));
+          if (i > message.length) {
+            clearInterval(interval);
+            if (onFinish) onFinish();
+          }
+        }, 100);
+      }, delay);
+    };
 
-  const handleAddPet = () => {
-    router.push("/PetProfile/aboutpet");
-  };
+    typeText(setWelcomeText, "Welcome to..", 0);
+    typeText(setTitleText, "HAPPY PAWS", 3800, () => {
+      setTimeout(() => setShowUnderline(true), 0);
+    });
+    typeText(setSubtitleText, "Happy Pet, Happy Owner", 6000, () => {
+      setTimeout(() => setShowButton(true), 10);
+    });
+  }, []);
 
-  const services = [
-    { id: 1, name: "Basic Grooming", icon: "cut", price: "₱350" },
-    { id: 2, name: "Flea & Tick Treatment", icon: "bug", price: "₱650" },
-    { id: 3, name: "Nail Trimming", icon: "paw", price: "₱150" },
-    { id: 4, name: "Teeth Cleaning", icon: "medical", price: "₱250" },
-  ];
-
-  // Show loading screen while fonts are loading
   if (!fontsLoaded) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#143470" />
+      <View style={styles.loading}>
+        <Text>Loading...</Text>
       </View>
     );
   }
 
   return (
-    <ImageBackground
-      source={require("../assets/images/homebg.png")}
-      style={styles.backgroundImage}
-      resizeMode="cover"
-    >
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.pageTitle}>HOME</Text>
-          <TouchableOpacity
-            style={styles.notificationIcon}
-            onPress={() => router.push("/notification")}
-          >
-            <Ionicons name="notifications" size={26} color="#fff" />
-          </TouchableOpacity>
-        </View>
+    <View style={styles.container}>
+      {/* Welcome Text */}
+      <MotiText
+        from={{ opacity: 0, translateY: -20 }}
+        animate={{ opacity: 1, translateY: 0 }}
+        transition={{ delay: 200, duration: 800 }}
+        style={styles.welcomeTo}
+      >
+        {welcomeText}
+      </MotiText>
 
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
-          style={styles.scrollView}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        >
-          <View style={styles.greetingContainer}>
-            <Text style={styles.greetingName}>{username || "User"}</Text>
-            <View style={styles.greetingDivider} />
-          </View>
+      {/* 🐾 Delayed Pop + Bounce + Breathing Logo */}
+      <Animated.View style={[styles.logoContainer, animatedLogo]}>
+        <Image
+          source={require("../assets/images/logo (1).png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </Animated.View>
 
-          {/* Pet Profiles */}
-          <View style={{ paddingVertical: 20 }}>
-            {pets.length === 0 ? (
-              <View style={styles.emptyPetContainer}>
-                <View style={[styles.emptyPetCard, { width: CARD_WIDTH }]}>
-                  <Text style={styles.profileTitle}>Pet Profile</Text>
-                  <View style={styles.profileLine} />
-                  
-                  <View style={styles.emptyImagePlaceholder}>
-                    <Ionicons name="paw" size={40} color="#ccc" />
-                  </View>
-                  
-                  <Text style={styles.emptyPetName}>-</Text>
-                  <Text style={styles.petProfileSize}>Size: -</Text>
-
-                  <View style={styles.profileInfo}>
-                    <Text style={styles.profileLabel}>Breed: -</Text>
-                    <Text style={styles.profileLabel}>Age: -</Text>
-                    <Text style={styles.profileLabel}>Treat: -</Text>
-                    <Text style={styles.profileLabel}>Vaccine: -</Text>
-                    <Text style={styles.profileLabel}>Behavioral Condition: -</Text>
-                  </View>
-
-                  <View style={styles.profileLine} />
-                  <TouchableOpacity
-                    style={styles.addPetButtonEmpty}
-                    onPress={handleAddPet}
-                  >
-                    <Text style={styles.addPetButtonText}>ADD PET</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                snapToInterval={CARD_WIDTH + CARD_SPACING}
-                decelerationRate="fast"
-                contentContainerStyle={{
-                  paddingHorizontal: (width - CARD_WIDTH) / 2,
-                }}
-              >
-                {pets.map((pet) => (
-                  <View key={pet._id} style={[styles.petProfileCard, { width: CARD_WIDTH }]}>
-                    <TouchableOpacity
-                        style={styles.deleteButton}
-                        onPress={() =>
-                          router.push({
-                            pathname: "/PetProfile/editpet",
-                            params: {
-                              pet: JSON.stringify(pet),
-                            },
-                          })
-                        }
-                      >
-                        <Ionicons name="create-outline" size={26} color="#143470" />
-                      </TouchableOpacity>
-
-                    <Text style={styles.profileTitle}>Pet Profile</Text>
-                    <View style={styles.profileLine} />
-                    
-                    <View style={styles.imageContainer}>
-                      <Image
-                        source={{ uri: pet.profileImage }}
-                        style={styles.petProfileImage}
-                        onError={(e) => console.log("Image error:", e.nativeEvent.error)}
-                      />
-                    </View>
-                    
-                    <Text style={styles.petProfileName}>{pet.name}</Text>
-                    <Text style={styles.petProfileSize}>Size: {pet.size}</Text>
-
-                    <View style={styles.profileInfo}>
-                      <Text style={styles.profileLabel}>Breed: {pet.breed}</Text>
-                      <Text style={styles.profileLabel}>Age: {pet.age || "N/A"}</Text>
-                      <Text style={styles.profileLabel}>Treat: {pet.treat || "N/A"}</Text>
-                      <Text style={styles.profileLabel}>Vaccine: {pet.rabiesExpiry || "N/A"}</Text>
-                      <Text style={styles.profileLabel}>
-                        Behavioral Condition: {pet.behavioralConcern || "N/A"}
-                      </Text>
-                    </View>
-
-                    <View style={styles.profileLine} />
-                    <TouchableOpacity
-                      style={styles.startAppointmentButton}
-                      onPress={() => router.push("/(tabs)/booking")}
-                    >
-                      <Text style={styles.startAppointmentText}>START APPOINTMENT</Text>
-                    </TouchableOpacity>
-                  </View>
-                ))}
-
-                {/* Add Pet Card at the end */}
-                <View style={[styles.emptyPetCard, { width: CARD_WIDTH }]}>
-                  <Text style={styles.profileTitle}>Pet Profile</Text>
-                  <View style={styles.profileLine} />
-                  
-                  <View style={styles.emptyImagePlaceholder}>
-                    <Ionicons name="paw" size={40} color="#ccc" />
-                  </View>
-                  
-                  <Text style={styles.emptyPetName}>-</Text>
-                  <Text style={styles.petProfileSize}>Size: -</Text>
-
-                  <View style={styles.profileInfo}>
-                    <Text style={styles.profileLabel}>Breed: -</Text>
-                    <Text style={styles.profileLabel}>Age: -</Text>
-                    <Text style={styles.profileLabel}>Treat: -</Text>
-                    <Text style={styles.profileLabel}>Vaccine: -</Text>
-                    <Text style={styles.profileLabel}>Behavioral Condition: -</Text>
-                  </View>
-
-                  <View style={styles.profileLine} />
-                  <TouchableOpacity
-                    style={styles.addPetButtonEmpty}
-                    onPress={handleAddPet}
-                  >
-                    <Text style={styles.addPetButtonText}>ADD PET</Text>
-                  </TouchableOpacity>
-                </View>
-              </ScrollView>
-            )}
-          </View>
-
-          <LinearGradient colors={["#FF8C00", "#FFB84D"]} style={styles.promoCard}>
-            <Text style={styles.promoTitle}>SPECIAL OFFER</Text>
-            <Text style={styles.promoText}>
-              Get 20% off on your first grooming session!
-            </Text>
-            <TouchableOpacity style={styles.promoButton}>
-              <Text style={styles.promoButtonText}>Book Now</Text>
-            </TouchableOpacity>
-          </LinearGradient>
-
-          <Text style={styles.sectionTitle}>Popular Services</Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.servicesContainer}
-          >
-            {services.map((service) => (
-              <View key={service.id} style={styles.serviceCard}>
-                <View style={styles.serviceIcon}>
-                  <Ionicons name={service.icon as any} size={28} color="#FF8C00" />
-                </View>
-                <Text style={styles.serviceName}>{service.name}</Text>
-                <Text style={styles.servicePrice}>{service.price}</Text>
-              </View>
-            ))}
-          </ScrollView>
-
-          <Text style={styles.sectionTitle}>Appointments</Text>
-          {appointments.length === 0 ? (
-            <View style={styles.emptyAppointments}>
-              <Ionicons name="calendar-outline" size={60} color="#ccc" />
-              <Text style={styles.emptyText}>No appointments yet</Text>
-              <TouchableOpacity
-                style={styles.bookNowButton}
-                onPress={() => router.push("/(tabs)/booking")}
-              >
-                <Text style={styles.bookNowText}>Book Your First Appointment</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <View style={styles.appointmentsTable}>
-              {appointments.map((appointment) => (
-                <View key={appointment._id} style={styles.appointmentRow}>
-                  <View style={styles.appointmentDetails}>
-                    <Text style={styles.petName}>{appointment.petId?.name || "Unknown Pet"}</Text>
-                    <Text style={styles.serviceName}>
-                      {appointment.services.map(s => s.serviceName).join(", ")}
-                    </Text>
-                    <Text style={styles.appointmentTime}>
-                      {appointment.appointmentDate} • {appointment.appointmentTime}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    style={styles.viewButton}
-                    onPress={() => router.push("/(tabs)/appointment")}
-                  >
-                    <Text style={styles.viewButtonText}>View</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </View>
-          )}
-
-          <View style={{ height: 100 }} />
-        </ScrollView>
+      {/* Logo Text + Underline */}
+      <View style={styles.textContainer}>
+        <Text style={styles.logoText}>{titleText}</Text>
+        {showUnderline && <View style={styles.underline} />}
       </View>
-    </ImageBackground>
+
+      {/* Subtitle */}
+      <Text style={styles.subtitle}>{subtitleText}</Text>
+
+      {/* Button */}
+      {showButton && (
+        <MotiView
+          from={{ opacity: 0, translateY: 100 }}
+          animate={{ opacity: 1, translateY: 0 }}
+          transition={{
+            type: "spring",
+            damping: 10,   // lower = bouncier
+            stiffness: 100,
+            delay: 900
+          }}
+          style={styles.buttonContainer}
+        >
+          <Link href="/login" asChild>
+            <TouchableOpacity style={styles.getStartBtn}>
+              <Text style={styles.getStartText}>Get Started</Text>
+            </TouchableOpacity>
+          </Link>
+        </MotiView>
+      )}
+    </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
-  backgroundImage: { flex: 1, width: "100%", height: "100%" },
-  container: { flex: 1 },
-  scrollView: { flex: 1 },
-  loadingContainer: {
+  loading: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 12,
     backgroundColor: "#143470",
+    justifyContent: "center",
+    alignItems: "center",
+    overflow: "hidden",
   },
-  pageTitle: {
-    fontSize: 28,
+  welcomeTo: {
     color: "#fff",
-    fontFamily: "LuckiestGuy_400Regular",
-    textShadowColor: "rgba(0,0,0,0.8)",
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 2,
+    fontSize: 20,
+    opacity: 0.9,
+    marginBottom: 10,
+    letterSpacing: 1,
   },
-  notificationIcon: { padding: 8 },
-  greetingContainer: { paddingHorizontal: 20 },
-  greetingName: {
-    fontSize: 31,
-    fontFamily: "Poppins_600SemiBold",
-    color: "#4A4A4A",
-    marginTop: 10,
-  },
-  greetingDivider: { height: 1.5, backgroundColor: "#000", opacity: 1 },
-  petProfileCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    marginRight: CARD_SPACING,
-    padding: 20,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    position: "relative",
-  },
-  deleteButton: { position: "absolute", top: 10, right: 10, zIndex: 10 },
-  profileTitle: { 
-    fontWeight: "bold", 
-    fontSize: 16, 
-    color: "#000", 
-    alignSelf: "flex-start",
-    fontFamily: "Poppins_600SemiBold",
-  },
-  profileLine: { 
-    height: 1, 
-    backgroundColor: "#000", 
-    width: "100%", 
-    marginVertical: 8 
-  },
-  imageContainer: {
-    width: "100%",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  petProfileImage: { 
-    width: 80, 
-    height: 80, 
-    borderRadius: 40,
-  },
-  petProfileName: { 
-    fontWeight: "bold", 
-    fontSize: 18, 
-    color: "#000",
-    textAlign: "center",
-    width: "100%",
-    fontFamily: "Poppins_600SemiBold",
-  },
-  petProfileSize: { 
-    fontSize: 14, 
-    color: "#777", 
-    marginBottom: 8,
-    textAlign: "center",
-    width: "100%",
-    fontFamily: "Poppins_400Regular",
-  },
-  profileInfo: { 
-    alignSelf: "flex-start", 
-    marginTop: 8,
-    width: "100%",
-  },
-  profileLabel: { 
-    fontSize: 14, 
-    color: "#000", 
-    marginBottom: 4,
-    fontFamily: "Poppins_400Regular",
-  },
-  startAppointmentButton: {
-    borderWidth: 1,
-    borderColor: "#000",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    marginTop: 10,
-    width: "100%",
-    alignItems: "center",
-  },
-  startAppointmentText: { 
-    color: "#000", 
-    fontWeight: "bold",
-    fontFamily: "Poppins_600SemiBold",
-  },
-  addPetCard: {
-    backgroundColor: "#EAF0FF",
-    borderRadius: 10,
-    marginRight: CARD_SPACING,
+  logoContainer: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
-    borderWidth: 2,
-    borderColor: "#143470",
+    marginBottom: 0,
   },
-  addPetText: { 
-    fontSize: 16, 
-    color: "#143470", 
-    marginTop: 8, 
-    fontWeight: "600",
-    fontFamily: "Poppins_600SemiBold",
+  logo: {
+    width: 208,
+    height: 193,
   },
-  promoCard: { backgroundColor: "#FF8C00", margin: 16, padding: 20, borderRadius: 12, elevation: 3 },
-  promoTitle: { 
-    fontSize: 16, 
-    fontWeight: "bold", 
-    color: "#fff", 
-    marginBottom: 4,
-    fontFamily: "Poppins_700Bold",
+  textContainer: {
+    alignItems: "center",
+    marginTop: 10,
   },
-  promoText: { 
-    fontSize: 18, 
-    color: "#fff", 
-    marginBottom: 16, 
-    fontWeight: "600",
-    fontFamily: "Poppins_600SemiBold",
+  logoText: {
+    fontSize: 40,
+    color: "white",
+    fontFamily: "LuckiestGuy_400Regular",
+    textShadowColor: "rgba(0, 0, 0, 1)",
+    textShadowOffset: { width: 1.5, height: 5 },
+    textShadowRadius: 1,
+    letterSpacing: 1,
+    marginTop: -45,
   },
-  promoButton: {
-    backgroundColor: "#FFD54F",
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    alignSelf: "flex-start",
+
+  underline: {
+    width: 295,
+    height: 4,
+    backgroundColor: "#ffffff",
+    borderRadius: 2,
+    marginTop: -3,
   },
-  promoButtonText: { 
-    color: "#0d3683ff", 
-    fontWeight: "bold",
-    fontFamily: "Poppins_700Bold",
+  subtitle: {
+    color: "#fff",
+    fontSize: 18,
+    opacity: 0.9,
+    marginTop: 10,
+    marginBottom: 100,
   },
-  sectionTitle: {
+  buttonContainer: { position: "absolute", bottom: 80 },
+  getStartBtn: {
+    backgroundColor: "#F7941D",
+    paddingHorizontal: 40,
+    paddingVertical: 14,
+    borderRadius: 6,
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+  },
+  getStartText: {
+    color: "#fff",
     fontSize: 20,
     fontWeight: "bold",
-    marginHorizontal: 16,
-    marginVertical: 16,
-    color: "#143470",
-    fontFamily: "Poppins_700Bold",
-  },
-  servicesContainer: { paddingLeft: 16, marginBottom: 16 },
-  serviceCard: {
-    backgroundColor: "#fff",
-    width: 140,
-    height: 160,
-    borderRadius: 12,
-    marginRight: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  serviceIcon: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#FFF4E0",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 12,
-  },
-  serviceName: {
-    fontSize: 14,
-    fontWeight: "600",
     textAlign: "center",
-    color: "#2c3e50",
-    marginBottom: 4,
-    fontFamily: "Poppins_600SemiBold",
-  },
-  servicePrice: { 
-    fontSize: 16, 
-    fontWeight: "bold", 
-    color: "#FF8C00",
-    fontFamily: "Poppins_700Bold",
-  },
-  emptyAppointments: {
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 40,
-    marginHorizontal: 16,
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 16,
-  },
-  emptyText: { 
-    fontSize: 16, 
-    color: "#999", 
-    marginTop: 12, 
-    marginBottom: 20,
-    fontFamily: "Poppins_400Regular",
-  },
-  bookNowButton: {
-    backgroundColor: "#FF8C00",
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-  },
-  bookNowText: { 
-    color: "#fff", 
-    fontWeight: "600", 
-    fontSize: 16,
-    fontFamily: "Poppins_600SemiBold",
-  },
-  appointmentsTable: { marginHorizontal: 16, marginBottom: 16 },
-  appointmentRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 16,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  appointmentDetails: { flex: 1 },
-  petName: { 
-    fontSize: 16, 
-    fontWeight: "600", 
-    color: "#2c3e50",
-    fontFamily: "Poppins_600SemiBold",
-  },
-  appointmentTime: { 
-    fontSize: 14, 
-    color: "#7f8c8d", 
-    marginTop: 4,
-    fontFamily: "Poppins_400Regular",
-  },
-  viewButton: {
-    backgroundColor: "#FF8C00",
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 5,
-  },
-  viewButtonText: { 
-    color: "#fff", 
-    fontWeight: "600",
-    fontFamily: "Poppins_600SemiBold",
-  },
-  emptyPetContainer: { alignItems: "center", justifyContent: "center" },
-  emptyPetCard: {
-    backgroundColor: "#fff",
-    borderRadius: 10,
-    padding: 20,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    borderWidth: 2,
-    borderColor: "#e0e0e0",
-    marginRight: CARD_SPACING,
-  },
-  emptyImagePlaceholder: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#f5f5f5",
-    alignItems: "center",
-    justifyContent: "center",
-    marginVertical: 8,
-    alignSelf: "center",
-  },
-  emptyPetName: { 
-    fontWeight: "bold", 
-    fontSize: 18,
-    color: "#ccc", 
-    marginTop: 8,
-    textAlign: "center",
-    width: "100%",
-    fontFamily: "Poppins_600SemiBold",
-  },
-  addPetButtonEmpty: {
-    borderWidth: 2,
-    borderColor: "#000",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-    marginTop: 10,
-    width: "100%",
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  addPetButtonText: { 
-    color: "#000", 
-    fontWeight: "bold", 
-    fontSize: 16,
-    fontFamily: "Poppins_700Bold",
   },
 });
-
-export default Home;
