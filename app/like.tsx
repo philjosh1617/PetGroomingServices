@@ -1,5 +1,5 @@
 import { router } from 'expo-router';
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -7,85 +7,86 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
 } from 'react-native';
-
-type NavItem = {
-  id: string;
-  label: string;
-  active: boolean;
-};
+import { Ionicons } from '@expo/vector-icons';
+import { useAppointmentContext } from './contexts/AppointmentContext';
 
 const ConfirmationScreen = () => {
-  const [navigationItems, setNavigationItems] = useState<NavItem[]>([
-    { id: '1', label: 'Services', active: false },
-    { id: '2', label: 'Date', active: false },
-    { id: '3', label: 'Payment', active: false },
-    { id: '4', label: 'Status', active: false },
-    { id: '5', label: 'Like', active: false },
-  ]);
-
-  const handleNavPress = (id: string) => {
-    setNavigationItems(prevItems =>
-      prevItems.map(item => ({
-        ...item,
-        active: item.id === id
-      }))
-    );
-  };
+  const { appointmentData } = useAppointmentContext();
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
-      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.pageTitle}>BOOK APPOINTMENT</Text>
-      </View>
-
-      {/* Navigation Bar */}
-      <View style={styles.navBar}>
-        {navigationItems.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={[styles.navItem, item.active && styles.navItemActive]}
-            onPress={() => handleNavPress(item.id)}
-          >
-            <Text style={[styles.navText, item.active && styles.navTextActive]}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <Text style={styles.pageTitle}>BOOKING CONFIRMED</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
+        {/* Success Icon */}
+        <View style={styles.successIconContainer}>
+          <View style={styles.successIcon}>
+            <Ionicons name="checkmark-circle" size={80} color="#34C759" />
+          </View>
+        </View>
+
         {/* Confirmation Header */}
         <View style={styles.confirmationHeader}>
-          <Text style={styles.confirmationTitle}>Booking confirmed !</Text>
+          <Text style={styles.confirmationTitle}>Booking Confirmed! 🎉</Text>
         </View>
 
         {/* Confirmation Message */}
         <View style={styles.messageContainer}>
-          <Text style={styles.messageTitle}>Your booking is confirmed!</Text>
+          <Text style={styles.messageTitle}>Your booking has been received!</Text>
           <Text style={styles.messageText}>
             We can't wait to give your furry friend the care they deserve. Get ready for lots of cuddles, bubbles, and wagging tails!
           </Text>
           
-          {/* Appointment Date */}
-          <View style={styles.appointmentDate}>
-            <Text style={styles.dateText}>
-              See you on November 11, 2025, at 1:30 PM!
+          {/* Appointment Details */}
+          <View style={styles.detailsCard}>
+            <Text style={styles.detailsTitle}>Appointment Details:</Text>
+            
+            <View style={styles.detailRow}>
+              <Ionicons name="paw" size={20} color="#143470" />
+              <Text style={styles.detailText}>Pet: {appointmentData.petName || 'N/A'}</Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Ionicons name="calendar" size={20} color="#143470" />
+              <Text style={styles.detailText}>
+                Date: {appointmentData.appointmentDate || 'N/A'}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Ionicons name="time" size={20} color="#143470" />
+              <Text style={styles.detailText}>
+                Time: {appointmentData.appointmentTime || 'N/A'}
+              </Text>
+            </View>
+
+            <View style={styles.detailRow}>
+              <Ionicons name="cash" size={20} color="#143470" />
+              <Text style={styles.detailText}>
+                Total: ₱{appointmentData.totalAmount || 0}
+              </Text>
+            </View>
+          </View>
+
+          {/* Status Info */}
+          <View style={styles.statusInfo}>
+            <Text style={styles.statusTitle}>📋 Current Status: PENDING</Text>
+            <Text style={styles.statusText}>
+              Your appointment is waiting for admin approval. You'll receive a notification once it's confirmed!
             </Text>
           </View>
 
           {/* Additional Information */}
           <Text style={styles.additionalText}>
-            If you need to make any changes, don't worry — you can easily reschedule through your bookings page. Until then, give your furry pal some extra love — they've got a pampering day ahead! *.*
+            If you need to make any changes, don't worry — you can easily view your bookings in the Appointments tab. Until then, give your furry pal some extra love — they've got a pampering day ahead! 🐾
           </Text>
 
           {/* Thank You Message */}
           <Text style={styles.thankYouText}>
-            Thank you for choosing us to be part of your pet's grooming journey.
+            Thank you for choosing HappyPaws Pet Grooming Services!
           </Text>
         </View>
 
@@ -93,8 +94,19 @@ const ConfirmationScreen = () => {
         <View style={styles.divider} />
 
         {/* Return to Dashboard Button */}
-        <TouchableOpacity style={styles.dashboardButton}onPress={() => router.push("/home")}>
-          <Text style={styles.dashboardButtonText}>RETURN TO DASHBOARD</Text>
+        <TouchableOpacity 
+          style={styles.dashboardButton}
+          onPress={() => router.replace("/(tabs)/home")}
+        >
+          <Text style={styles.dashboardButtonText}>RETURN TO HOME</Text>
+        </TouchableOpacity>
+
+        {/* View Appointments Button */}
+        <TouchableOpacity 
+          style={styles.appointmentsButton}
+          onPress={() => router.replace("/(tabs)/appointment")}
+        >
+          <Text style={styles.appointmentsButtonText}>VIEW MY APPOINTMENTS</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -102,13 +114,10 @@ const ConfirmationScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
   header: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 50,
@@ -116,57 +125,37 @@ const styles = StyleSheet.create({
     backgroundColor: "#143470",
   },
   pageTitle: {
-    fontSize: 35,
-    color: "#ffffffff",
-    fontFamily: "LuckiestGuy",
+    fontSize: 28,
+    color: "#fff",
+    fontFamily: "LuckiestGuy_400Regular",
     textShadowColor: "rgba(0,0,0,1)",
-    textShadowOffset: { width: 5, height: 7 },
+    textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 1,
     letterSpacing: 1,
     textAlign: 'center',
-    width: '100%',
   },
-  navBar: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f8f8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  navItem: {
-    flex: 1,
-    paddingVertical: 16,
+  scrollContent: { padding: 20, paddingTop: 10 },
+  successIconContainer: {
     alignItems: 'center',
+    marginVertical: 20,
   },
-  navItemActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#DB6309',
-  },
-  navText: {
-    fontSize: 14,
-    color: '#000000ff',
-    fontWeight: '500',
-  },
-  navTextActive: {
-    color: '#DB6309',
-    fontWeight: 'bold',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 10,
+  successIcon: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: '#E8F5E9',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   confirmationHeader: {
     alignItems: 'center',
-    marginBottom: 30,
-    paddingVertical: 20,
+    marginBottom: 20,
   },
   confirmationTitle: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#34C759',
     textAlign: 'center',
-    textShadowColor: 'rgba(52, 199, 89, 0.3)',
-    textShadowOffset: { width: 2, height: 2 },
-    textShadowRadius: 4,
   },
   messageContainer: {
     backgroundColor: '#f8f8f8',
@@ -191,21 +180,49 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  appointmentDate: {
+  detailsCard: {
     backgroundColor: '#fff',
     padding: 15,
     borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#34C759',
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
     marginBottom: 20,
-    alignItems: 'center',
   },
-  dateText: {
+  detailsTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#34C759',
-    textAlign: 'center',
-    lineHeight: 22,
+    color: '#143470',
+    marginBottom: 12,
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  detailText: {
+    fontSize: 15,
+    color: '#333',
+    marginLeft: 10,
+    flex: 1,
+  },
+  statusInfo: {
+    backgroundColor: '#FFF3CD',
+    padding: 15,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#FFA500',
+    marginBottom: 15,
+  },
+  statusTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#856404',
+    marginBottom: 8,
+  },
+  statusText: {
+    fontSize: 14,
+    color: '#856404',
+    lineHeight: 20,
   },
   additionalText: {
     fontSize: 15,
@@ -233,9 +250,22 @@ const styles = StyleSheet.create({
     padding: 18,
     borderRadius: 10,
     alignItems: 'center',
-    marginTop: 10,
+    marginBottom: 12,
   },
   dashboardButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  appointmentsButton: {
+    backgroundColor: '#143470',
+    padding: 18,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  appointmentsButtonText: {
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',

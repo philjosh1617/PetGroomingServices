@@ -7,24 +7,18 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   TextInput,
+  Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Added icon import
+import { Ionicons } from '@expo/vector-icons';
+import { useAppointmentContext } from './contexts/AppointmentContext';
 
-type NavItem = {
-  id: string;
-  label: string;
-  active: boolean;
-};
-
-type PaymentMethod = {
-  id: string;
-  label: string;
-  selected: boolean;
-};
+type NavItem = { id: string; label: string; active: boolean };
+type PaymentMethod = { id: string; label: string; selected: boolean };
 
 const PaymentScreen = () => {
+  const { updateAppointmentData } = useAppointmentContext();
+  
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([
     { id: '1', label: 'Services', active: false },
     { id: '2', label: 'Date', active: false },
@@ -47,54 +41,59 @@ const PaymentScreen = () => {
 
   const [saveCard, setSaveCard] = useState(false);
 
-  const handleBackPress = () => {
-    router.push('/date'); // Navigate to date screen
-  };
-
   const handleNavPress = (id: string) => {
     setNavigationItems(prevItems =>
-      prevItems.map(item => ({
-        ...item,
-        active: item.id === id
-      }))
+      prevItems.map(item => ({ ...item, active: item.id === id }))
     );
   };
 
   const handlePaymentMethodSelect = (id: string) => {
     setPaymentMethods(prevMethods =>
-      prevMethods.map(method => ({
-        ...method,
-        selected: method.id === id
-      }))
+      prevMethods.map(method => ({ ...method, selected: method.id === id }))
     );
   };
 
   const handleInputChange = (field: string, value: string) => {
-    setCardInfo(prev => ({
-      ...prev,
-      [field]: value
-    }));
+    setCardInfo(prev => ({ ...prev, [field]: value }));
   };
 
   const isCreditCardSelected = paymentMethods[0].selected;
 
+  const handleNext = () => {
+    const selectedMethod = paymentMethods.find(m => m.selected);
+    
+    if (!selectedMethod) {
+      Alert.alert('No Payment Method', 'Please select a payment method.');
+      return;
+    }
+
+    // Validate credit card fields if credit card is selected
+    if (isCreditCardSelected) {
+      if (!cardInfo.cardholderName || !cardInfo.cardNumber || !cardInfo.expiryDate || !cardInfo.cvv) {
+        Alert.alert('Incomplete Information', 'Please fill in all credit card details.');
+        return;
+      }
+    }
+
+    // Save payment method to context
+    updateAppointmentData({
+      paymentMethod: selectedMethod.id === '1' ? 'CREDIT_CARD' : 'OVER_THE_COUNTER'
+    });
+
+    console.log('✅ Payment method saved:', selectedMethod.label);
+    router.push("/status");
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
-      {/* Header with Back Button */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={handleBackPress}
-          activeOpacity={0.7}
-        >
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
-        <Text style={styles.pageTitle}>BOOK APPOINTMENT</Text>
+        <Text style={styles.pageTitle}>Book Appointment</Text>
+        <View style={{ width: 1 }} />
       </View>
 
-      {/* Navigation Bar */}
       <View style={styles.navBar}>
         {navigationItems.map((item) => (
           <TouchableOpacity
@@ -110,7 +109,6 @@ const PaymentScreen = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Payment Methods */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Payment Method</Text>
           <View style={styles.paymentMethodsContainer}>
@@ -134,13 +132,10 @@ const PaymentScreen = () => {
           </View>
         </View>
 
-        {/* Dynamic Content Based on Payment Method */}
         {isCreditCardSelected ? (
-          /* Credit Card Information Section */
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Card Information</Text>
             
-            {/* Cardholder Name */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>CARDHOLDER NAME</Text>
               <TextInput
@@ -152,7 +147,6 @@ const PaymentScreen = () => {
               />
             </View>
 
-            {/* Card Number */}
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>CARD NUMBER</Text>
               <TextInput
@@ -165,7 +159,6 @@ const PaymentScreen = () => {
               />
             </View>
 
-            {/* Expiry Date and CVV */}
             <View style={styles.rowInputs}>
               <View style={styles.halfInputGroup}>
                 <Text style={styles.inputLabel}>MM/YY</Text>
@@ -192,7 +185,6 @@ const PaymentScreen = () => {
               </View>
             </View>
 
-            {/* Save Card Option */}
             <TouchableOpacity 
               style={styles.checkboxContainer}
               onPress={() => setSaveCard(!saveCard)}
@@ -208,7 +200,6 @@ const PaymentScreen = () => {
             <Text style={styles.checkboxSubtext}>Save this card for future bookings</Text>
           </View>
         ) : (
-          /* Over the Counter Information Section */
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Over the Counter Payment</Text>
             <View style={styles.overTheCounterContainer}>
@@ -220,7 +211,6 @@ const PaymentScreen = () => {
                 Just present your booking details — and your pet's next pampering session is all set!
               </Text>
               
-              {/* Additional Information */}
               <View style={styles.additionalInfo}>
                 <Text style={styles.additionalInfoTitle}>How it works:</Text>
                 <View style={styles.stepsContainer}>
@@ -250,11 +240,9 @@ const PaymentScreen = () => {
           </View>
         )}
 
-        {/* Divider */}
         <View style={styles.divider} />
 
-        {/* Next Button */}
-        <TouchableOpacity style={styles.nextButton}onPress={() => router.push("/status")}>
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
           <Text style={styles.nextButtonText}>NEXT</Text>
         </TouchableOpacity>
       </ScrollView>
@@ -263,38 +251,24 @@ const PaymentScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
   header: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    paddingHorizontal: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 15,
     paddingTop: 50,
     paddingBottom: 12,
-    backgroundColor: "#143470",
-    position: 'relative',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 50,
-    zIndex: 10,
-    padding: 8,
+    backgroundColor: '#143470',
   },
   pageTitle: {
-    fontSize: 28, // Reduced from 35 to fit better with back button
-    color: "#ffffffff",
-    fontFamily: "LuckiestGuy",
-    textShadowColor: "rgba(0,0,0,1)",
-    textShadowOffset: { width: 5, height: 7 },
-    textShadowRadius: 1,
+    fontSize: 28,
+    color: '#fff',
+    fontFamily: 'LuckiestGuy_400Regular',
+    textShadowColor: "rgba(0,0,0,0.8)",
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 2,
     letterSpacing: 1,
-    textAlign: 'center',
-    width: '100%',
-    marginLeft: 15, // Compensate for back button space
   },
   navBar: {
     flexDirection: 'row',
@@ -302,41 +276,14 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
-  navItem: {
-    flex: 1,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  navItemActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#DB6309',
-  },
-  navText: {
-    fontSize: 14,
-    color: '#000000ff',
-    fontWeight: '500',
-  },
-  navTextActive: {
-    color: '#DB6309',
-    fontWeight: 'bold',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 10,
-  },
-  section: {
-    marginBottom: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#000000ff',
-    marginBottom: 20,
-  },
-  paymentMethodsContainer: {
-    flexDirection: 'row',
-    gap: 10,
-  },
+  navItem: { flex: 1, paddingVertical: 16, alignItems: 'center' },
+  navItemActive: { borderBottomWidth: 2, borderBottomColor: '#DB6309' },
+  navText: { fontSize: 14, color: '#000000ff', fontWeight: '500' },
+  navTextActive: { color: '#DB6309', fontWeight: 'bold' },
+  scrollContent: { padding: 20, paddingTop: 10 },
+  section: { marginBottom: 25 },
+  sectionTitle: { fontSize: 18, fontWeight: '600', color: '#000000ff', marginBottom: 20 },
+  paymentMethodsContainer: { flexDirection: 'row', gap: 10 },
   paymentMethod: {
     flex: 1,
     paddingVertical: 12,
@@ -347,35 +294,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#f8f8f8',
     alignItems: 'center',
   },
-  paymentMethodSelected: {
-    backgroundColor: '#DB6309',
-    borderColor: '#DB6309',
-  },
-  paymentMethodText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#666',
-  },
-  paymentMethodTextSelected: {
-    color: '#fff',
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  rowInputs: {
-    flexDirection: 'row',
-    gap: 15,
-    marginBottom: 20,
-  },
-  halfInputGroup: {
-    flex: 1,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 8,
-  },
+  paymentMethodSelected: { backgroundColor: '#DB6309', borderColor: '#DB6309' },
+  paymentMethodText: { fontSize: 14, fontWeight: '600', color: '#666' },
+  paymentMethodTextSelected: { color: '#fff' },
+  inputGroup: { marginBottom: 20 },
+  rowInputs: { flexDirection: 'row', gap: 15, marginBottom: 20 },
+  halfInputGroup: { flex: 1 },
+  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#333', marginBottom: 8 },
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -385,11 +310,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
-  checkboxContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
+  checkboxContainer: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   checkbox: {
     width: 20,
     height: 20,
@@ -400,25 +321,10 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  checkboxSelected: {
-    backgroundColor: '#333',
-  },
-  checkmark: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  checkboxLabel: {
-    fontSize: 16,
-    color: '#333',
-    fontWeight: '500',
-  },
-  checkboxSubtext: {
-    fontSize: 14,
-    color: '#666',
-    marginLeft: 32,
-    fontStyle: 'italic',
-  },
+  checkboxSelected: { backgroundColor: '#333' },
+  checkmark: { color: '#fff', fontSize: 14, fontWeight: 'bold' },
+  checkboxLabel: { fontSize: 16, color: '#333', fontWeight: '500' },
+  checkboxSubtext: { fontSize: 14, color: '#666', marginLeft: 32, fontStyle: 'italic' },
   overTheCounterContainer: {
     backgroundColor: '#f8f8f8',
     padding: 20,
@@ -441,27 +347,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-  additionalInfo: {
-    marginTop: 15,
-    paddingTop: 15,
-    borderTopWidth: 1,
-    borderTopColor: '#e0e0e0',
-  },
-  additionalInfoTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
-  },
-  stepsContainer: {
-    gap: 10,
-    marginBottom: 15,
-  },
-  step: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 10,
-  },
+  additionalInfo: { marginTop: 15, paddingTop: 15, borderTopWidth: 1, borderTopColor: '#e0e0e0' },
+  additionalInfoTitle: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 12 },
+  stepsContainer: { gap: 10, marginBottom: 15 },
+  step: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
   stepNumber: {
     width: 24,
     height: 24,
@@ -473,12 +362,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 14,
   },
-  stepText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#333',
-    lineHeight: 20,
-  },
+  stepText: { flex: 1, fontSize: 14, color: '#333', lineHeight: 20 },
   noteText: {
     fontSize: 14,
     color: '#666',
@@ -486,22 +370,14 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     textAlign: 'center',
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#e0e0e0',
-    marginVertical: 20,
-  },
+  divider: { height: 1, backgroundColor: '#e0e0e0', marginVertical: 20 },
   nextButton: {
     backgroundColor: '#DB6309',
     padding: 16,
     borderRadius: 8,
     alignItems: 'center',
   },
-  nextButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+  nextButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
 });
 
 export default PaymentScreen;

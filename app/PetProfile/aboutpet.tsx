@@ -8,23 +8,25 @@ import {
   StyleSheet,
   SafeAreaView,
   TextInput,
+  Image,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as ImagePicker from 'expo-image-picker';
+import { usePetContext } from '../contexts/PetContext';
 
 type PetSize = 'SMALL' | 'MEDIUM' | 'LARGE' | 'XLARGE';
 type PetGender = 'BOY' | 'GIRL';
 
 const PetProfileScreen = () => {
-  // =====================
-  // FORM STATES
-  // =====================
-  const [name, setName] = useState('');
-  const [breed, setBreed] = useState('');
-  const [age, setAge] = useState('');
+  const { petData, updatePetData } = usePetContext();
 
-  // NOT PRE-SELECTED
-  const [selectedGender, setSelectedGender] = useState<PetGender | null>(null);
-  const [selectedSize, setSelectedSize] = useState<PetSize | null>(null);
+  const [name, setName] = useState(petData.name);
+  const [breed, setBreed] = useState(petData.breed);
+  const [age, setAge] = useState(petData.age);
+  const [selectedGender, setSelectedGender] = useState<PetGender | null>(petData.gender);
+  const [selectedSize, setSelectedSize] = useState<PetSize | null>(petData.size);
+  const [imageUri, setImageUri] = useState<string | null>(petData.profileImage || null);
 
   const isFormComplete =
     name.trim() !== '' &&
@@ -40,18 +42,62 @@ const PetProfileScreen = () => {
     { size: 'XLARGE', kg: '>35kg' },
   ];
 
+  const pickImage = async () => {
+    try {
+      // Request permission
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (status !== 'granted') {
+        Alert.alert('Permission Required', 'Please allow access to your photos to upload pet images.');
+        return;
+      }
+
+      // ✅ Launch image picker with updated API
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'], // ✅ Updated: Use array instead of MediaTypeOptions
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      console.log('Image picker result:', result);
+
+      if (!result.canceled && result.assets[0]) {
+        const uri = result.assets[0].uri;
+        console.log('Selected image URI:', uri);
+        setImageUri(uri);
+      }
+    } catch (error) {
+      console.error('Image picker error:', error);
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const handleNext = () => {
+    // Save data to context (including image)
+    updatePetData({
+      name,
+      breed,
+      age,
+      gender: selectedGender,
+      size: selectedSize,
+      profileImage: imageUri || undefined,
+    });
+    
+    console.log('✅ Pet data updated, navigating to food&medical');
+    router.push('/PetProfile/food&medical');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/user')}>
+        <TouchableOpacity onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
         </TouchableOpacity>
         <Text style={styles.pageTitle}>Pet Profile</Text>
         <View style={{ width: 26 }} />
       </View>
 
-      {/* TAB HEADER */}
       <View style={styles.tabContainer}>
         <TouchableOpacity style={[styles.tab, styles.activeTab]}>
           <Text style={[styles.tabText, styles.activeTabText]}>About Pet</Text>
@@ -67,21 +113,36 @@ const PetProfileScreen = () => {
         </TouchableOpacity>
       </View>
 
-      {/* CONTENT */}
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: 60 }}
       >
-        {/* PROFILE IMAGE */}
+        {/* Profile Image */}
         <View style={styles.profileSection}>
-          <View style={styles.profileImage} />
-          <Text style={styles.tapToChange}>TAP TO CHANGE</Text>
+          <TouchableOpacity onPress={pickImage} activeOpacity={0.8}>
+            <View style={styles.profileImageContainer}>
+              {imageUri ? (
+                <Image 
+                  source={{ uri: imageUri }} 
+                  style={styles.profileImage}
+                  onError={(error) => {
+                    console.log('Image display error:', error.nativeEvent.error);
+                  }}
+                />
+              ) : (
+                <View style={styles.profileImagePlaceholder}>
+                  <Ionicons name="camera" size={40} color="#999" />
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={pickImage}>
+            <Text style={styles.tapToChange}>TAP TO {imageUri ? 'CHANGE' : 'ADD PHOTO'}</Text>
+          </TouchableOpacity>
         </View>
 
-        {/* FORM */}
         <View style={styles.infoSection}>
-          {/* NAME */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>NAME</Text>
             <TextInput
@@ -92,7 +153,6 @@ const PetProfileScreen = () => {
             />
           </View>
 
-          {/* BREED */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>BREED</Text>
             <TextInput
@@ -103,7 +163,6 @@ const PetProfileScreen = () => {
             />
           </View>
 
-          {/* AGE */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>AGE</Text>
             <TextInput
@@ -115,7 +174,6 @@ const PetProfileScreen = () => {
             />
           </View>
 
-          {/* GENDER */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>GENDER</Text>
             <View style={styles.genderContainer}>
@@ -141,7 +199,6 @@ const PetProfileScreen = () => {
             </View>
           </View>
 
-          {/* SIZE */}
           <View style={styles.infoItem}>
             <Text style={styles.infoLabel}>SIZE</Text>
             <View style={styles.sizeContainer}>
@@ -176,14 +233,10 @@ const PetProfileScreen = () => {
           </View>
         </View>
 
-        {/* NEXT BUTTON */}
         <TouchableOpacity
-          style={[
-            styles.nextButton,
-            !isFormComplete && { opacity: 0.5 }
-          ]}
+          style={[styles.nextButton, !isFormComplete && { opacity: 0.5 }]}
           disabled={!isFormComplete}
-          onPress={() => router.push('/PetProfile/food&medical')}
+          onPress={handleNext}
         >
           <Text style={styles.nextButtonText}>NEXT</Text>
         </TouchableOpacity>
@@ -194,12 +247,8 @@ const PetProfileScreen = () => {
 
 export default PetProfileScreen;
 
-// =====================
-// STYLES
-// =====================
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -218,7 +267,6 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
     letterSpacing: 1,
   },
-
   tabContainer: {
     flexDirection: 'row',
     paddingVertical: 15,
@@ -235,9 +283,19 @@ const styles = StyleSheet.create({
   activeTab: { backgroundColor: '#DB6309' },
   tabText: { fontSize: 12, color: '#000' },
   activeTabText: { color: '#fff' },
-
   profileSection: { alignItems: 'center', paddingVertical: 30 },
+  profileImageContainer: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: 'hidden',
+  },
   profileImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+  },
+  profileImagePlaceholder: {
     width: 120,
     height: 120,
     borderRadius: 60,
@@ -245,13 +303,18 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderStyle: 'dashed',
     borderColor: '#E0E0E0',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  tapToChange: { fontSize: 12, color: '#666', marginTop: 6 },
-
+  tapToChange: { 
+    fontSize: 12, 
+    color: '#4A90E2', 
+    marginTop: 6,
+    fontWeight: '600',
+  },
   infoSection: { paddingHorizontal: 20 },
   infoItem: { marginBottom: 25 },
   infoLabel: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
-
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -261,7 +324,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#F8F9FA',
     color: '#000',
   },
-
   genderContainer: { flexDirection: 'row' },
   genderButton: {
     flex: 1,
@@ -276,7 +338,6 @@ const styles = StyleSheet.create({
   genderButtonSelected: { backgroundColor: '#a4a4a7ff' },
   genderText: { fontSize: 16 },
   genderTextSelected: { fontWeight: '600' },
-
   sizeContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -297,7 +358,6 @@ const styles = StyleSheet.create({
   sizeTextSelected: { fontWeight: '600' },
   sizePrice: { fontSize: 12 },
   sizePriceSelected: { fontWeight: '600' },
-
   nextButton: {
     backgroundColor: '#DB6309',
     margin: 20,

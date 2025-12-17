@@ -7,62 +7,69 @@ import {
   TouchableOpacity,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   TextInput,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Added icon import
+import { Ionicons } from '@expo/vector-icons';
+import { usePetContext } from '../contexts/PetContext';
 
-const MedicalConditionScreen = ({ navigation }: any) => {
-  const [hasMedicalCondition, setHasMedicalCondition] = useState<boolean | null>(null);
-  const [hasBehavioralConcerns, setHasBehavioralConcerns] = useState<boolean | null>(null);
-  const [medicalExplanation, setMedicalExplanation] = useState('');
-  const [behavioralExplanation, setBehavioralExplanation] = useState('');
-  const [preferredTreat, setPreferredTreat] = useState('');
+const MedicalConditionScreen = () => {
+  const { petData, updatePetData } = usePetContext();
+
+  const [hasMedicalCondition, setHasMedicalCondition] = useState<boolean | null>(
+    petData.medicalCondition ? true : null
+  );
+  const [hasBehavioralConcerns, setHasBehavioralConcerns] = useState<boolean | null>(
+    petData.behavioralConcern ? true : null
+  );
+  const [medicalExplanation, setMedicalExplanation] = useState(petData.medicalCondition);
+  const [behavioralExplanation, setBehavioralExplanation] = useState(petData.behavioralConcern);
+  const [preferredTreat, setPreferredTreat] = useState(petData.treat);
 
   const isMedicalSectionValid =
-  hasMedicalCondition !== null &&
-  (hasMedicalCondition === false || medicalExplanation.trim() !== '');
+    hasMedicalCondition !== null &&
+    (hasMedicalCondition === false || medicalExplanation.trim() !== '');
 
   const isBehavioralSectionValid =
     hasBehavioralConcerns !== null &&
     (hasBehavioralConcerns === false || behavioralExplanation.trim() !== '');
 
-  const isFormComplete =
-    isMedicalSectionValid && isBehavioralSectionValid;
+  const isFormComplete = isMedicalSectionValid && isBehavioralSectionValid;
 
+  const handleNext = () => {
+    updatePetData({
+      medicalCondition: hasMedicalCondition ? medicalExplanation : 'None',
+      behavioralConcern: hasBehavioralConcerns ? behavioralExplanation : 'None',
+      treat: preferredTreat,
+    });
+    router.push('/PetProfile/vaccine');
+  };
 
   return (
     <SafeAreaView style={styles.container}>
- 
-      
-        {/* Header with Back Button */}
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.push('/PetProfile/aboutpet')}>
-            <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
-          </TouchableOpacity>
-          <Text style={styles.pageTitle}>Pet Profile</Text>
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+        </TouchableOpacity>
+        <Text style={styles.pageTitle}>Pet Profile</Text>
+        <View style={{ width: 26 }} />
+      </View>
 
-          <View style={{ width: 26 }} />
-        </View>
-
-        {/* Tab Navigation Header */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity style={styles.tab}>
-            <Text style={styles.tabText}>About Pet</Text>
-          </TouchableOpacity>        
-          <TouchableOpacity style={[styles.tab, styles.activeTab]}>
-            <Text style={[styles.tabText, styles.activeTabText]}>Food & Medical</Text>
-          </TouchableOpacity>          
-          <TouchableOpacity style={styles.tab}>
-            <Text style={styles.tabText}>Vaccine</Text>
-          </TouchableOpacity>          
-          <TouchableOpacity style={styles.tab}>
-            <Text style={styles.tabText}>Confirmation</Text>
-          </TouchableOpacity>
-        </View>
+      <View style={styles.tabContainer}>
+        <TouchableOpacity style={styles.tab}>
+          <Text style={styles.tabText}>About Pet</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.tab, styles.activeTab]}>
+          <Text style={[styles.tabText, styles.activeTabText]}>Food & Medical</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tab}>
+          <Text style={styles.tabText}>Vaccine</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tab}>
+          <Text style={styles.tabText}>Confirmation</Text>
+        </TouchableOpacity>
+      </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        {/* Medical Condition Section - Lowered by reducing marginTop */}
         <View style={[styles.section, styles.medicalSection]}>
           <Text style={styles.sectionTitle}>MEDICAL CONDITION?</Text>
           <View style={styles.yesNoContainer}>
@@ -71,12 +78,14 @@ const MedicalConditionScreen = ({ navigation }: any) => {
                 styles.yesNoButton,
                 hasMedicalCondition === true && styles.yesNoButtonSelected,
               ]}
-              onPress={() => setHasMedicalCondition(true)}>
+              onPress={() => setHasMedicalCondition(true)}
+            >
               <Text
                 style={[
                   styles.yesNoText,
                   hasMedicalCondition === true && styles.yesNoTextSelected,
-                ]}>
+                ]}
+              >
                 YES
               </Text>
             </TouchableOpacity>
@@ -85,12 +94,14 @@ const MedicalConditionScreen = ({ navigation }: any) => {
                 styles.yesNoButton,
                 hasMedicalCondition === false && styles.yesNoButtonSelected,
               ]}
-              onPress={() => setHasMedicalCondition(false)}>
+              onPress={() => setHasMedicalCondition(false)}
+            >
               <Text
                 style={[
                   styles.yesNoText,
                   hasMedicalCondition === false && styles.yesNoTextSelected,
-                ]}>
+                ]}
+              >
                 NO
               </Text>
             </TouchableOpacity>
@@ -111,7 +122,6 @@ const MedicalConditionScreen = ({ navigation }: any) => {
           )}
         </View>
 
-        {/* Behavioral Concerns Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>BEHAVIOURAL CONCERNS?</Text>
           <View style={styles.yesNoContainer}>
@@ -120,12 +130,14 @@ const MedicalConditionScreen = ({ navigation }: any) => {
                 styles.yesNoButton,
                 hasBehavioralConcerns === true && styles.yesNoButtonSelected,
               ]}
-              onPress={() => setHasBehavioralConcerns(true)}>
+              onPress={() => setHasBehavioralConcerns(true)}
+            >
               <Text
                 style={[
                   styles.yesNoText,
                   hasBehavioralConcerns === true && styles.yesNoTextSelected,
-                ]}>
+                ]}
+              >
                 YES
               </Text>
             </TouchableOpacity>
@@ -134,12 +146,14 @@ const MedicalConditionScreen = ({ navigation }: any) => {
                 styles.yesNoButton,
                 hasBehavioralConcerns === false && styles.yesNoButtonSelected,
               ]}
-              onPress={() => setHasBehavioralConcerns(false)}>
+              onPress={() => setHasBehavioralConcerns(false)}
+            >
               <Text
                 style={[
                   styles.yesNoText,
                   hasBehavioralConcerns === false && styles.yesNoTextSelected,
-                ]}>
+                ]}
+              >
                 NO
               </Text>
             </TouchableOpacity>
@@ -160,7 +174,6 @@ const MedicalConditionScreen = ({ navigation }: any) => {
           )}
         </View>
 
-        {/* Preferred Treat Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Preferred Treat (Optional)</Text>
           <TextInput
@@ -171,14 +184,10 @@ const MedicalConditionScreen = ({ navigation }: any) => {
           />
         </View>
 
-        {/* Next Button */}
         <TouchableOpacity
-          style={[
-            styles.nextButton,
-            !isFormComplete && styles.nextButtonDisabled,
-          ]}
+          style={[styles.nextButton, !isFormComplete && styles.nextButtonDisabled]}
           disabled={!isFormComplete}
-          onPress={() => router.push('/PetProfile/vaccine')}
+          onPress={handleNext}
         >
           <Text style={styles.nextButtonText}>NEXT</Text>
         </TouchableOpacity>
@@ -188,20 +197,9 @@ const MedicalConditionScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 30,
-  },
-
-  tabContainer: {
-    flexDirection: 'row',
-    paddingVertical: 15,
-    backgroundColor: 'lightgray',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  scrollContent: { flexGrow: 1, paddingBottom: 30 },
+  tabContainer: { flexDirection: 'row', paddingVertical: 15, backgroundColor: 'lightgray' },
   tab: {
     flex: 1,
     alignItems: 'center',
@@ -213,8 +211,6 @@ const styles = StyleSheet.create({
   activeTab: { backgroundColor: '#DB6309' },
   tabText: { fontSize: 12, color: '#000' },
   activeTabText: { color: '#fff' },
-
-  // Main Header with Back Button
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -224,7 +220,6 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
     backgroundColor: "#143470",
   },
-
   pageTitle: {
     fontSize: 28,
     color: "#fff",
@@ -234,27 +229,10 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
     letterSpacing: 1,
   },
-
-
-  section: {
-    paddingHorizontal: 20,
-    marginBottom: 30,
-  },
-  // Specific style for medical section to lower it
-  medicalSection: {
-    marginTop: 10, // Reduced from default to lower the section
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 15, // Reduced from 30 to lower the content
-  },
-  yesNoContainer: {
-    flexDirection: 'row',
-    gap: 15,
-    marginBottom: 15,
-  },
+  section: { paddingHorizontal: 20, marginBottom: 30 },
+  medicalSection: { marginTop: 10 },
+  sectionTitle: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 15 },
+  yesNoContainer: { flexDirection: 'row', gap: 15, marginBottom: 15 },
   yesNoButton: {
     flex: 1,
     borderWidth: 1,
@@ -264,28 +242,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#f8f9fa',
   },
-  yesNoButtonSelected: {
-    borderColor: '#A9A9A9',
-    backgroundColor: '#A9A9A9',
-  },
-  yesNoText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
-  },
-  yesNoTextSelected: {
-    color: '#000000ff',
-    fontWeight: '600',
-  },
-  explanationContainer: {
-    marginTop: 10,
-  },
-  explanationLabel: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-    fontStyle: 'italic',
-  },
+  yesNoButtonSelected: { borderColor: '#A9A9A9', backgroundColor: '#A9A9A9' },
+  yesNoText: { fontSize: 16, color: '#666', fontWeight: '500' },
+  yesNoTextSelected: { color: '#000000ff', fontWeight: '600' },
+  explanationContainer: { marginTop: 10 },
+  explanationLabel: { fontSize: 14, color: '#666', marginBottom: 8, fontStyle: 'italic' },
   textInput: {
     borderWidth: 1,
     borderColor: '#ddd',
@@ -312,15 +273,8 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: 'center',
   },
-  nextButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-
-  nextButtonDisabled: {
-  opacity: 0.5,
-  },
+  nextButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  nextButtonDisabled: { opacity: 0.5 },
 });
 
 export default MedicalConditionScreen;

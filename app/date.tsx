@@ -7,21 +7,19 @@ import {
   ScrollView,
   StyleSheet,
   SafeAreaView,
-  StatusBar,
   Modal,
+  Alert,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Added icon import
+import { Ionicons } from '@expo/vector-icons';
+import { useAppointmentContext } from './contexts/AppointmentContext';
 
+/* =======================
+   TYPES
+======================= */
 type TimeSlot = {
   id: string;
   time: string;
   selected?: boolean;
-};
-
-type DayOption = {
-  id: string;
-  label: string;
-  selected: boolean;
 };
 
 type NavItem = {
@@ -30,22 +28,53 @@ type NavItem = {
   active: boolean;
 };
 
+/* =======================
+   DATE HELPERS
+======================= */
+const formatDate = (date: Date) =>
+  date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: '2-digit',
+    year: 'numeric',
+  });
+
+const getWeekday = (date: Date) =>
+  date.toLocaleDateString('en-US', { weekday: 'long' });
+
+const isWeekend = (date: Date) => {
+  const day = date.getDay();
+  return day === 0 || day === 6;
+};
+
+/* Generate next 7 days automatically */
+const generateDates = (daysAhead = 30) => {
+  const dates: Date[] = [];
+  const today = new Date();
+
+  for (let i = 0; i < daysAhead; i++) {
+    const d = new Date(today);
+    d.setDate(today.getDate() + i);
+    dates.push(d);
+  }
+
+  return dates;
+};
+
+/* =======================
+   COMPONENT
+======================= */
 const AppointmentBooking = () => {
+  const { updateAppointmentData } = useAppointmentContext();
+
   const [isDateModalVisible, setDateModalVisible] = useState(false);
-  const [selectedDate, setSelectedDate] = useState('November 11, 2025');
-  const [days, setDays] = useState<DayOption[]>([
-    { id: '1', label: 'Monday', selected: false },
-    { id: '2', label: 'Tuesday', selected: true },
-    { id: '3', label: 'Wednesday', selected: false },
-    { id: '4', label: 'Thursday', selected: false },
-    { id: '5', label: 'Friday', selected: false },
-  ]);
+  const [availableDates] = useState<Date[]>(generateDates(30));
+  const [selectedDate, setSelectedDate] = useState<Date>(availableDates[0]);
 
   const [timeSlots, setTimeSlots] = useState<TimeSlot[]>([
-    { id: '1', time: '8:00 AM - 10:00 AM', selected: false },
-    { id: '2', time: '10:00 AM - 12:00 PM', selected: true },
-    { id: '3', time: '1:30 PM - 3:30 PM', selected: false },
-    { id: '4', time: '3:30 PM - 5:30 PM', selected: false },
+    { id: '1', time: '8:00 AM - 10:00 AM' },
+    { id: '2', time: '10:00 AM - 12:00 PM' },
+    { id: '3', time: '1:30 PM - 3:30 PM' },
+    { id: '4', time: '3:30 PM - 5:30 PM' },
   ]);
 
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([
@@ -53,198 +82,162 @@ const AppointmentBooking = () => {
     { id: '2', label: 'Date', active: true },
     { id: '3', label: 'Payment', active: false },
     { id: '4', label: 'Status', active: false },
-    { id: '5', label: 'Like', active: false }, // Added Like tab
+    { id: '5', label: 'Like', active: false },
   ]);
 
-  const availableDates = [
-    'November 11, 2025',
-    'November 12, 2025',
-    'November 13, 2025',
-    'November 14, 2025',
-    'November 15, 2025',
-  ];
-
-  const handleBackPress = () => {
-    router.push('/Services'); // Navigate to Services screen
-  };
-
-  const toggleDaySelection = (id: string) => {
-    setDays(prevDays => 
-      prevDays.map(day => 
-        day.id === id ? { ...day, selected: !day.selected } : { ...day, selected: false }
-      )
-    );
-  };
-
+  /* =======================
+     HANDLERS
+  ======================= */
   const toggleTimeSelection = (id: string) => {
-    setTimeSlots(prevSlots => 
-      prevSlots.map(slot => 
-        slot.id === id ? { ...slot, selected: !slot.selected } : { ...slot, selected: false }
+    if (isWeekend(selectedDate)) return;
+
+    setTimeSlots(prev =>
+      prev.map(slot =>
+        slot.id === id
+          ? { ...slot, selected: true }
+          : { ...slot, selected: false }
       )
     );
   };
 
-  const handleDateSelect = (date: string) => {
+  const handleDateSelect = (date: Date) => {
+    if (isWeekend(date)) {
+      Alert.alert(
+        'Unavailable Date',
+        'Appointments are only available Monday to Friday.'
+      );
+      return;
+    }
+
     setSelectedDate(date);
     setDateModalVisible(false);
-  };
 
-  const handleNavPress = (id: string) => {
-    setNavigationItems(prevItems =>
-      prevItems.map(item => ({
-        ...item,
-        active: item.id === id
-      }))
+    // Reset time selection when date changes
+    setTimeSlots(prev =>
+      prev.map(slot => ({ ...slot, selected: false }))
     );
   };
 
+  const handleNext = () => {
+    if (isWeekend(selectedDate)) {
+      Alert.alert('Unavailable', 'No appointments on weekends.');
+      return;
+    }
+
+    const selectedTime = timeSlots.find(slot => slot.selected);
+    if (!selectedTime) {
+      Alert.alert('No Time Selected', 'Please select a time slot.');
+      return;
+    }
+
+    updateAppointmentData({
+      appointmentDate: formatDate(selectedDate),
+      appointmentDay: getWeekday(selectedDate),
+      appointmentTime: selectedTime.time,
+    });
+
+    router.push('/payment');
+  };
+
+  /* =======================
+     UI
+  ======================= */
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      
-      {/* Header with Back Button */}
+      {/* HEADER */}
       <View style={styles.header}>
-        <TouchableOpacity 
-          style={styles.backButton}
-          onPress={handleBackPress}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#FFFFFF" />
+        <TouchableOpacity onPress={() => router.back()}>
+          <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.pageTitle}>BOOK APPOINTMENT</Text>
-      </View>
-
-      {/* Navigation Bar */}
-      <View style={styles.navBar}>
-        {navigationItems.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={[styles.navItem, item.active && styles.navItemActive]}
-            onPress={() => handleNavPress(item.id)}
-          >
-            <Text style={[styles.navText, item.active && styles.navTextActive]}>
-              {item.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <Text style={styles.pageTitle}>Book Appointment</Text>
+        <View style={{ width: 24 }} />
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* Date Section with Dropdown */}
+        {/* DATE */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Select Date</Text>
-          <TouchableOpacity 
+
+          <TouchableOpacity
             style={styles.dateDropdown}
             onPress={() => setDateModalVisible(true)}
           >
-            <Text style={styles.dateDropdownText}>{selectedDate}</Text>
-            <Text style={styles.dropdownArrow}>▼</Text>
+            <Text style={styles.dateDropdownText}>
+              {formatDate(selectedDate)}
+            </Text>
+            <Text>▼</Text>
           </TouchableOpacity>
+
+          <Text style={styles.weekdayText}>
+            Day: {getWeekday(selectedDate)}
+          </Text>
+
+          {isWeekend(selectedDate) && (
+            <Text style={styles.weekendText}>Weekend not available</Text>
+          )}
         </View>
 
-        {/* Days in Horizontal Row */}
-        <View style={styles.section}>
-          <Text style={styles.sectionSubtitle}>Available Days</Text>
-          <View style={styles.daysHorizontalContainer}>
-            {days.map((day, index) => (
-              <View key={day.id} style={styles.dayItemContainer}>
-                <TouchableOpacity
-                  style={[styles.dayButton, day.selected && styles.dayButtonSelected]}
-                  onPress={() => toggleDaySelection(day.id)}
-                >
-                  <Text style={[styles.dayButtonText, day.selected && styles.dayButtonTextSelected]}>
-                    {day.label}
-                  </Text>
-                </TouchableOpacity>
-                {index < days.length - 1 && (
-                  <Text style={styles.daySeparator}>|</Text>
-                )}
-              </View>
-            ))}
-          </View>
-        </View>
-
-        {/* Time Slots Section */}
+        {/* TIME */}
         <View style={styles.section}>
           <Text style={styles.sectionSubtitle}>Available Time Slots</Text>
-          <View style={styles.timeSlotsContainer}>
-            <TouchableOpacity 
-              style={[styles.timeSlot, timeSlots[0].selected && styles.timeSlotSelected]}
-              onPress={() => toggleTimeSelection('1')}
-            >
-              <Text style={[styles.timeSlotText, timeSlots[0].selected && styles.timeSlotTextSelected]}>
-                8:00 AM - 10:00 AM
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.timeSlot, timeSlots[1].selected && styles.timeSlotSelected]}
-              onPress={() => toggleTimeSelection('2')}
-            >
-              <Text style={[styles.timeSlotText, timeSlots[1].selected && styles.timeSlotTextSelected]}>
-                10:00 AM - 12:00 PM
-              </Text>
-            </TouchableOpacity>
-            
-            
-            <TouchableOpacity 
-              style={[styles.timeSlot, timeSlots[2].selected && styles.timeSlotSelected]}
-              onPress={() => toggleTimeSelection('3')}
-            >
-              <Text style={[styles.timeSlotText, timeSlots[2].selected && styles.timeSlotTextSelected]}>
-                1:30 PM - 3:30 PM
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              style={[styles.timeSlot, timeSlots[3].selected && styles.timeSlotSelected]}
-              onPress={() => toggleTimeSelection('4')}
-            >
-              <Text style={[styles.timeSlotText, timeSlots[3].selected && styles.timeSlotTextSelected]}>
-                3:30 PM - 5:30 PM
-              </Text>
-            </TouchableOpacity>
-          </View>
+
+          {isWeekend(selectedDate) ? (
+            <Text style={styles.disabledText}>
+              Time selection disabled on weekends
+            </Text>
+          ) : (
+            timeSlots.map(slot => (
+              <TouchableOpacity
+                key={slot.id}
+                style={[
+                  styles.timeSlot,
+                  slot.selected && styles.timeSlotSelected,
+                ]}
+                onPress={() => toggleTimeSelection(slot.id)}
+              >
+                <Text
+                  style={[
+                    styles.timeSlotText,
+                    slot.selected && styles.timeSlotTextSelected,
+                  ]}
+                >
+                  {slot.time}
+                </Text>
+              </TouchableOpacity>
+            ))
+          )}
         </View>
 
-        {/* Info Text */}
-        <View style={styles.section}>
-          <Text style={styles.infoText}>
-            "Appointments can be rescheduled up to 24 hours in advance."
-          </Text>
-        </View>
-
-        {/* Next Button */}
-        <TouchableOpacity style={styles.nextButton} onPress={() => router.push("/payment")}>
+        <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
           <Text style={styles.nextButtonText}>NEXT</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      {/* Date Selection Modal */}
-      <Modal
-        visible={isDateModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={() => setDateModalVisible(false)}
-      >
+      {/* DATE MODAL */}
+      <Modal transparent visible={isDateModalVisible} animationType="slide">
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Select Date</Text>
-            {availableDates.map((date, index) => (
+            <Text style={styles.modalTitle}>Choose Date</Text>
+
+            <ScrollView style={{ maxHeight: 350 }}>
+              {availableDates.map((date, index) => (
               <TouchableOpacity
                 key={index}
-                style={[
-                  styles.dateOption,
-                  date === selectedDate && styles.dateOptionSelected
-                ]}
+                style={styles.dateOption}
                 onPress={() => handleDateSelect(date)}
               >
-                <Text style={[
-                  styles.dateOptionText,
-                  date === selectedDate && styles.dateOptionTextSelected
-                ]}>
-                  {date}
+                <Text
+                  style={[
+                    styles.dateOptionText,
+                    isWeekend(date) && styles.disabledText,
+                  ]}
+                >
+                  {formatDate(date)} ({getWeekday(date)})
                 </Text>
               </TouchableOpacity>
-            ))}
+              ))}
+            </ScrollView>
+
             <TouchableOpacity
               style={styles.modalCloseButton}
               onPress={() => setDateModalVisible(false)}
@@ -258,230 +251,96 @@ const AppointmentBooking = () => {
   );
 };
 
+/* =======================
+   STYLES
+======================= */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+
   header: {
-    flexDirection: "row",
-    justifyContent: "flex-start",
-    alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 12,
-    backgroundColor: "#143470",
-    position: 'relative',
-  },
-  backButton: {
-    position: 'absolute',
-    left: 20,
-    top: 50,
-    zIndex: 10,
-    padding: 8,
-  },
-  pageTitle: {
-    fontSize: 28, // Reduced from 35 to fit better with back button
-    color: "#ffffffff",
-    fontFamily: "LuckiestGuy",
-    textShadowColor: "rgba(0,0,0,1)",
-    textShadowOffset: { width: 5, height: 7 },
-    textShadowRadius: 1,
-    letterSpacing: 1,
-    textAlign: 'center',
-    width: '100%',
-    marginLeft: 15, // Compensate for back button space
-  },
-  navBar: {
-    flexDirection: 'row',
-    backgroundColor: '#f8f8f8',
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-  },
-  navItem: {
-    flex: 1,
-    paddingVertical: 16,
-    alignItems: 'center',
-  },
-  navItemActive: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#DB6309',
-  },
-  navText: {
-    fontSize: 14,
-    color: '#000000ff',
-    fontWeight: '500',
-  },
-  navTextActive: {
-    color: '#DB6309',
-    fontWeight: 'bold',
-  },
-  scrollContent: {
-    padding: 20,
-    paddingTop: 10,
-  },
-  section: {
-    marginBottom: 25,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 10,
-  },
-  sectionSubtitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 15,
-  },
-  dateDropdown: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    paddingTop: 50,
+    paddingHorizontal: 15,
+    paddingBottom: 12,
+    backgroundColor: '#143470',
+  },
+
+  pageTitle: { color: '#fff', fontSize: 26, fontWeight: 'bold' },
+
+  scrollContent: { padding: 20 },
+
+  section: { marginBottom: 25 },
+  sectionTitle: { fontSize: 18, fontWeight: '600' },
+  sectionSubtitle: { fontSize: 16, fontWeight: '600' },
+
+  dateDropdown: {
+    marginTop: 10,
     padding: 15,
     borderWidth: 1,
-    borderColor: '#ddd',
     borderRadius: 8,
-    backgroundColor: '#f8f8f8',
-  },
-  dateDropdownText: {
-    fontSize: 16,
-    color: '#333',
-  },
-  dropdownArrow: {
-    fontSize: 12,
-    color: '#666',
-  },
-  daysHorizontalContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
+    justifyContent: 'space-between',
   },
-  dayItemContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+
+  dateDropdownText: { fontSize: 16 },
+
+  weekdayText: {
+    marginTop: 6,
+    fontStyle: 'italic',
+    color: '#555',
   },
-  dayButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: '#ddd',
-    backgroundColor: '#f8f8f8',
-    borderRadius: 6,
-    marginHorizontal: 2,
-  },
-  dayButtonSelected: {
-    backgroundColor: '#DB6309',
-    borderColor: '#000000ff',
-  },
-  dayButtonText: {
-    fontSize: 14,
-    color: '#000000ff',
-    fontWeight: '500',
-  },
-  dayButtonTextSelected: {
-    color: '#fff',
-  },
-  daySeparator: {
-    fontSize: 14,
-    color: '#999',
-    marginHorizontal: 8,
-    fontWeight: '300',
-  },
-  timeSlotsContainer: {
-    gap: 8,
-  },
+
+  weekendText: { color: 'red', marginTop: 4 },
+
   timeSlot: {
     padding: 15,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
     borderRadius: 8,
-    backgroundColor: '#f8f8f8',
+    marginTop: 8,
   },
+
   timeSlotSelected: {
     backgroundColor: '#DB6309',
-    borderColor: '#000000ff',
   },
-  timeSlotText: {
-    fontSize: 16,
-    color: '#000000ff',
-    textAlign: 'center',
-  },
-  timeSlotTextSelected: {
-    color: '#fff',
-    fontWeight: '600',
-  },
-  
-  infoText: {
-    fontSize: 14,
-    color: '#666',
-    textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 20,
-    marginTop: 10,
-  },
+
+  timeSlotText: { textAlign: 'center' },
+  timeSlotTextSelected: { color: '#fff', fontWeight: 'bold' },
+
+  disabledText: { color: '#999', fontStyle: 'italic' },
+
   nextButton: {
     backgroundColor: '#DB6309',
     padding: 16,
     borderRadius: 8,
-    alignItems: 'center',
     marginTop: 20,
+    alignItems: 'center',
   },
-  nextButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
+
+  nextButtonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0,0,0,0.5)',
     justifyContent: 'center',
-    alignItems: 'center',
   },
+
   modalContent: {
     backgroundColor: '#fff',
+    margin: 20,
     borderRadius: 12,
     padding: 20,
-    width: '80%',
-    maxWidth: 300,
   },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    textAlign: 'center',
-    color: '#333',
-  },
-  dateOption: {
-    padding: 15,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f0f0f0',
-  },
-  dateOptionSelected: {
-    backgroundColor: '#f0f0f0',
-    borderRadius: 6,
-  },
-  dateOptionText: {
-    fontSize: 16,
-    color: '#333',
-    textAlign: 'center',
-  },
-  dateOptionTextSelected: {
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  modalCloseButton: {
-    marginTop: 15,
-    padding: 12,
-    alignItems: 'center',
-  },
-  modalCloseText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
-  },
+
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+
+  dateOption: { padding: 12 },
+
+  dateOptionText: { textAlign: 'center' },
+
+  modalCloseButton: { marginTop: 10, alignItems: 'center' },
+
+  modalCloseText: { color: '#666' },
 });
 
 export default AppointmentBooking;

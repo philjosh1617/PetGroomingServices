@@ -1,202 +1,330 @@
-import { View, Text, StyleSheet, Image, TextInput, TouchableOpacity, ImageBackground } from 'react-native';
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  ImageBackground,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+  Keyboard,
+} from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { Link, useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';
+import { useFonts, LuckiestGuy_400Regular } from '@expo-google-fonts/luckiest-guy';
 
-export default function SignUp () {
+/* ================= CONFIG ================= */
+const API_URL = 'http://192.168.100.19:3000/api/auth';
+
+/* ================= COMPONENT ================= */
+export default function SignUp() {
   const router = useRouter();
+  const scrollRef = useRef<ScrollView>(null);
+
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const movetoLogin = () => {
-    router.replace("/login");
+  const [fontsLoaded] = useFonts({
+    LuckiestGuy_400Regular,
+  });
+
+  /* ================= KEYBOARD ================= */
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', e => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  if (!fontsLoaded) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color="#fff" />
+      </View>
+    );
+  }
+
+  /* ================= SIGN UP HANDLER ================= */
+  const handleSignUp = async () => {
+    if (!username || !email || !password || !confirmPassword) {
+      Alert.alert('Error', 'All fields are required');
+      return;
+    }
+
+    if (username.length < 6) {
+      Alert.alert('Error', 'Username should be at least 6 characters long');
+      return;
+    }
+
+    if (password.length < 6) {
+      Alert.alert('Error', 'Password should be at least 6 characters long');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/register`,
+        {
+          username: username.trim(),
+          email: email.toLowerCase().trim(),
+          password,
+        },
+        { timeout: 10000 }
+      );
+
+      await AsyncStorage.setItem('token', response.data.token);
+      await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+
+      // ✅ SUCCESS ALERT (waits for OK)
+      Alert.alert(
+        'Success',
+        'Account created successfully!',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              router.replace('/(tabs)/home');
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        'Server error. Please try again later.';
+
+      Alert.alert('Signup Failed', message);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  /* ================= UI ================= */
   return (
-    <ImageBackground source={require("../assets/images/pawpatterns.png")} 
-      style={styles.container}
+    <View style={{ flex: 1 }}>
+      <ImageBackground
+        source={require('../assets/images/pawpatterns.png')}
+        style={styles.container}
       >
-      
-      {/* Logo */}
-      <View style={styles.logo_container}>
-        <Image source={require("../assets/images/logo.png")}width={208} height={193} />
-          <View style={{ position: "relative" }}>
+        <ScrollView
+          ref={scrollRef}
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingBottom: keyboardHeight + 40 },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* LOGO */}
+          <View style={styles.logo_container}>
+            <Image
+              source={require('../assets/images/logo.png')}
+              style={{ width: 200, height: 180 }}
+              resizeMode="contain"
+            />
             <Text style={styles.logoText}>HAPPY PAWS</Text>
+            <View style={[styles.underline, styles.underlineOutline]} />
+            <View style={styles.underline} />
           </View>
-        <View style={[styles.underline, styles.underlineOutline]} />
-        <View style={styles.underline} />
-      </View>
 
-      {/* Username */}
-   
-      <View style={styles.inputContainer}>
-        <Feather name="user" size={22} color="#4A5568" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Username"
-          placeholderTextColor="#A0AEC0"
-        />
-      </View>
+          {/* USERNAME */}
+          <View style={styles.inputContainer}>
+            <Feather name="user" size={22} color="#4A5568" />
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+            />
+          </View>
 
-      {/* Email */}
+          {/* EMAIL */}
+          <View style={styles.inputContainer}>
+            <Feather name="mail" size={22} color="#4A5568" />
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              keyboardType="email-address"
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+            />
+          </View>
 
-      <View style={styles.inputContainer}>
-        <Feather name="mail" size={22} color="#4A5568" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Email Address"
-          placeholderTextColor="#A0AEC0"
-          keyboardType="email-address"
-        />
-      </View>
+          {/* PASSWORD */}
+          <View style={styles.inputContainer}>
+            <Feather name="lock" size={22} color="#4A5568" />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              secureTextEntry={!showPassword}
+              value={password}
+              onChangeText={setPassword}
+            />
+            <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+              <Feather
+                name={showPassword ? 'eye' : 'eye-off'}
+                size={20}
+                color="#4A5568"
+              />
+            </TouchableOpacity>
+          </View>
 
-      {/* Password */}
+          {/* CONFIRM PASSWORD */}
+          <View style={styles.inputContainer}>
+            <Feather name="lock" size={22} color="#4A5568" />
+            <TextInput
+              style={styles.input}
+              placeholder="Confirm Password"
+              secureTextEntry={!showConfirmPassword}
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+            />
+            <TouchableOpacity
+              onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+            >
+              <Feather
+                name={showConfirmPassword ? 'eye' : 'eye-off'}
+                size={20}
+                color="#4A5568"
+              />
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.inputContainer}>
-        <Feather name="lock" size={22} color="#4A5568" />
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Password"
-          placeholderTextColor="#A0AEC0"
-          secureTextEntry={!showPassword}
-        />
-        <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-          <Feather name={showPassword ? "eye" : "eye-off"} size={20} color="#4A5568" />
-        </TouchableOpacity>
-      </View>
+          {/* BUTTON */}
+          <TouchableOpacity
+            style={[styles.signupButton, loading && styles.disabled]}
+            onPress={handleSignUp}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.signupButtonText}>Create Account</Text>
+            )}
+          </TouchableOpacity>
 
-      {/* Confirm Password */}
-
-      <View style={styles.inputContainer}>
-        <Feather name="lock" size={22} color="#4A5568" />
-        <TextInput
-          style={styles.input}
-          placeholder="Re-enter Password"
-          placeholderTextColor="#A0AEC0"
-          secureTextEntry={!showConfirmPassword}
-        />
-        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-          <Feather name={showConfirmPassword ? "eye" : "eye-off"} size={20} color="#4A5568" />
-        </TouchableOpacity>
-      </View>
-
-      {/* Signup Button */}
-      <TouchableOpacity style={styles.signupButton} onPress={movetoLogin}>
-        <Text style={styles.signupButtonText}>Create Account</Text>
-      </TouchableOpacity>
-
-      {/* Redirect to Login */}
-      <View style={styles.noticesignupContainer}>
-        <Text style={styles.noticesignup}>
-          Already have an Account?
-          <Link href="/login">
-            <Text style={styles.proceedLogin}> Log in</Text>
-          </Link>
-        </Text>
-      </View>
-    </ImageBackground>
+          {/* LOGIN LINK */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>Already have an account?</Text>
+            <Link href="/login">
+              <Text style={styles.loginLink}> Log in</Text>
+            </Link>
+          </View>
+        </ScrollView>
+      </ImageBackground>
+    </View>
   );
-};
+}
 
+/* ================= STYLES ================= */
 const styles = StyleSheet.create({
-  
   container: {
-    backgroundColor: "#143470",
     flex: 1,
+    backgroundColor: '#143470',
+  },
+  center: {
+    flex: 1,
+    backgroundColor: '#143470',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scrollContent: {
+    flexGrow: 1,
     paddingHorizontal: 20,
-    justifyContent: "center",
+    paddingTop: 60,
   },
-
   logo_container: {
-    alignItems: "center",
-    marginTop: 60,
-    marginBottom: 20,
+    alignItems: 'center',
+    marginBottom: 30,
   },
-
   logoText: {
-    color: "white",
+    color: 'white',
     fontSize: 40,
-    fontFamily: "LuckiestGuy_400Regular",
-    elevation: 10,
-    textShadowColor: "rgba(0, 0, 0, 1)",
-    textShadowOffset: { width: 1.5, height: 5 },
-    textShadowRadius: 1,
-    letterSpacing: 1,
-    marginTop: -45,
+    fontFamily: 'LuckiestGuy_400Regular',
+    marginTop: -40,
+    textShadowColor: 'rgba(0,0,0,0.8)',
+    textShadowOffset: { width: 2, height: 4 },
+    textShadowRadius: 2,
   },
-
-  textOutline: {
-
-    right: 2,
-    top: 15,
-    color: "black",
-  }, 
-
   underline: {
-    width: "80%",     
-    height: 4,   
-    backgroundColor: "#fcfcfcff",   
-    marginTop: -7.5,
+    width: '80%',
+    height: 4,
+    backgroundColor: '#fff',
+    marginTop: -6,
     borderRadius: 2,
-    
   },
-
   underlineOutline: {
-    width: "79%",  
-    height: 4,  
-    backgroundColor: "#000000be",
-    borderRadius: 12,
-    marginTop: 2, 
+    backgroundColor: '#000000aa',
+    marginTop: 2,
   },
-
-
   inputContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderWidth: 1,
-    borderColor: "#CBD5E0",
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 55,
-    marginTop: 10,
     marginBottom: 20,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
   },
   input: {
     flex: 1,
     marginLeft: 10,
     fontSize: 16,
-    color: "#2D3748",
   },
   signupButton: {
-    backgroundColor: "#4269B4",
+    backgroundColor: '#4269B4',
     borderRadius: 12,
-    marginTop: 40,
     paddingVertical: 14,
-    alignItems: "center",
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  disabled: {
+    opacity: 0.7,
   },
   signupButtonText: {
-    color: "white",
+    color: '#fff',
     fontSize: 18,
-    fontWeight: "600",
+    fontWeight: '600',
   },
-  noticesignupContainer: {
-    alignItems: "center",
-    marginTop: 20,
-    marginBottom: 40,
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 25,
   },
-  noticesignup: {
-    fontSize: 14,
-    color: "#ffffffff",
+  footerText: {
+    color: '#fff',
   },
-  proceedLogin: {
-    color: "#4A90E2",
-    fontWeight: "bold",
+  loginLink: {
+    color: '#4A90E2',
+    fontWeight: 'bold',
   },
 });
-
-
