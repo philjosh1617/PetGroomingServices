@@ -69,32 +69,20 @@ export default function ProfileScreen() {
   });
 
   const getProfileImageUrl = (profileImage?: string) => {
-  console.log("=== DEBUG PROFILE IMAGE ===");
-  console.log("Input profileImage:", profileImage);
-  console.log("User object:", user);
-  
-  // If no profile image or empty string, use DiceBear PNG (works in React Native!)
-  if (!profileImage || profileImage.trim() === "") {
-    const name = user?.username || user?.email || 'User';
-    const avatarUrl = `https://api.dicebear.com/9.x/croodles/png?seed=${encodeURIComponent(name)}&size=200`;
-    console.log("Generated DiceBear PNG avatar:", avatarUrl);
-    return avatarUrl;
-  }
-  
-  // ✅ REMOVED: No longer need to convert dicebear URLs since they're now PNG
-  // dicebear.com PNG URLs work perfectly in React Native!
-  
-  // If it's already a full URL (http/https), return it
-  if (profileImage.startsWith('http')) {
-    console.log("Using full URL:", profileImage);
-    return profileImage;
-  }
-  
-  // Otherwise, it's a relative path from our server
-  const fullUrl = `http://192.168.100.19:3000${profileImage}`;
-  console.log("Using relative path, full URL:", fullUrl);
-  return fullUrl;
-};
+    // If no profile image or empty string, use DiceBear PNG (works in React Native!)
+    if (!profileImage || profileImage.trim() === "") {
+      const name = user?.username || user?.email || 'User';
+      return `https://api.dicebear.com/9.x/croodles/png?seed=${encodeURIComponent(name)}&size=200`;
+    }
+    
+    // If it's already a full URL (http/https), return it
+    if (profileImage.startsWith('http')) {
+      return profileImage;
+    }
+    
+    // Otherwise, it's a relative path from our server
+    return `http://192.168.100.19:3000${profileImage}`;
+  };
 
   const fetchUserData = async () => {
     try {
@@ -103,7 +91,6 @@ export default function ProfileScreen() {
 
       if (userData) {
         const parsedUser = JSON.parse(userData);
-        console.log("📦 Loaded user from AsyncStorage:", parsedUser);
         setUser(parsedUser);
         setEditUsername(parsedUser.username);
         setEditEmail(parsedUser.email);
@@ -116,13 +103,12 @@ export default function ProfileScreen() {
           });
           
           const freshUser = response.data;
-          console.log("🔄 Fresh user from API:", freshUser);
           await AsyncStorage.setItem("user", JSON.stringify(freshUser));
           setUser(freshUser);
           setEditUsername(freshUser.username);
           setEditEmail(freshUser.email);
         } catch (error) {
-          console.log("Could not fetch fresh user data:", error);
+          // Silent fail - user data already loaded from AsyncStorage
         }
       }
     } catch (error) {
@@ -387,13 +373,7 @@ export default function ProfileScreen() {
     );
   }
 
-  // 🔍 DEBUG LOGS - This is where we check what's happening
-  console.log("=== RENDER DEBUG ===");
-  console.log("Current user state:", user);
-  console.log("User profileImage value:", user?.profileImage);
-
   const profileImageUrl = getProfileImageUrl(user?.profileImage);
-  console.log("Final profileImageUrl:", profileImageUrl);
 
   return (
     <ImageBackground
