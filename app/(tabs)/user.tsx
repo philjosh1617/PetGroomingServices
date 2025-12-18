@@ -23,7 +23,6 @@ import { useFonts, Poppins_400Regular, Poppins_600SemiBold, Poppins_700Bold } fr
 import { LuckiestGuy_400Regular } from '@expo-google-fonts/luckiest-guy';
 
 const API_URL = "http://192.168.100.19:3000/api";
-const DEFAULT_AVATAR = "https://via.placeholder.com/150/CCCCCC/666666?text=User";
 const MAX_PHOTOS = 6;
 
 interface User {
@@ -70,9 +69,28 @@ export default function ProfileScreen() {
   });
 
   const getProfileImageUrl = (profileImage?: string) => {
-    if (!profileImage) return DEFAULT_AVATAR;
-    if (profileImage.startsWith('http')) return profileImage;
-    return `http://192.168.100.19:3000${profileImage}`;
+    console.log("=== DEBUG PROFILE IMAGE ===");
+    console.log("Input profileImage:", profileImage);
+    console.log("User object:", user);
+    
+    // If no profile image or empty string, use UI Avatars
+    if (!profileImage || profileImage.trim() === "") {
+      const name = user?.username || user?.email || 'User';
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF8C00&color=fff&size=200&bold=true`;
+      console.log("Generated avatar URL:", avatarUrl);
+      return avatarUrl;
+    }
+    
+    // If it's already a full URL (http/https), return it
+    if (profileImage.startsWith('http')) {
+      console.log("Using full URL:", profileImage);
+      return profileImage;
+    }
+    
+    // Otherwise, it's a relative path from our server
+    const fullUrl = `http://192.168.100.19:3000${profileImage}`;
+    console.log("Using relative path, full URL:", fullUrl);
+    return fullUrl;
   };
 
   const fetchUserData = async () => {
@@ -82,6 +100,7 @@ export default function ProfileScreen() {
 
       if (userData) {
         const parsedUser = JSON.parse(userData);
+        console.log("📦 Loaded user from AsyncStorage:", parsedUser);
         setUser(parsedUser);
         setEditUsername(parsedUser.username);
         setEditEmail(parsedUser.email);
@@ -94,6 +113,7 @@ export default function ProfileScreen() {
           });
           
           const freshUser = response.data;
+          console.log("🔄 Fresh user from API:", freshUser);
           await AsyncStorage.setItem("user", JSON.stringify(freshUser));
           setUser(freshUser);
           setEditUsername(freshUser.username);
@@ -364,7 +384,13 @@ export default function ProfileScreen() {
     );
   }
 
+  // 🔍 DEBUG LOGS - This is where we check what's happening
+  console.log("=== RENDER DEBUG ===");
+  console.log("Current user state:", user);
+  console.log("User profileImage value:", user?.profileImage);
+
   const profileImageUrl = getProfileImageUrl(user?.profileImage);
+  console.log("Final profileImageUrl:", profileImageUrl);
 
   return (
     <ImageBackground
@@ -650,7 +676,6 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 4,
     minHeight: 230,
-    
   },
   photoGrid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "flex-start" },
   addPhotoBox: {
@@ -675,7 +700,7 @@ const styles = StyleSheet.create({
     borderColor: "#333",
   },
   photoImage: { width: "100%", height: "100%", resizeMode: "cover" },
-  photoHint: { marginTop: 8,marginBottom: 50, fontSize: 12, color: "#666", textAlign: "center", fontFamily: "Poppins_400Regular", },
+  photoHint: { marginTop: 8, marginBottom: 50, fontSize: 12, color: "#666", textAlign: "center", fontFamily: "Poppins_400Regular" },
   modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" },
   modalContent: { backgroundColor: "#fff", borderRadius: 16, padding: 20, width: "90%", maxWidth: 400 },
   modalTitle: {

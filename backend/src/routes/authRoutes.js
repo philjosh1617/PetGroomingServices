@@ -34,7 +34,7 @@ router.post("/register", async (req, res) => {
     if (username.length < 4) {
       return res
         .status(400)
-        .json({ message: "Username should be at least 6 characters long" });
+        .json({ message: "Username should be at least 4 characters long" });
     }
 
     const existingEmail = await User.findOne({ email });
@@ -57,6 +57,8 @@ router.post("/register", async (req, res) => {
     });
 
     await user.save();
+    // Verify it was saved correctly
+    console.log("✅ User created with profileImage:", user.profileImage);
 
     // ✅ Send welcome notification
     await createNotification(
