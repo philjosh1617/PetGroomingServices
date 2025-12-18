@@ -70,8 +70,8 @@ export default function SignUp() {
       return;
     }
 
-    if (username.length < 6) {
-      Alert.alert('Error', 'Username should be at least 6 characters long');
+    if (username.length < 4) {
+      Alert.alert('Error', 'Username should be at least 4 characters long');
       return;
     }
 

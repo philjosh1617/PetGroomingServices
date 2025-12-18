@@ -19,7 +19,10 @@ const userSchema = new mongoose.Schema({
     },
     profileImage: {
         type: String,
-        default: "",
+        default: function() {
+            // Generate unique dicebear avatar based on username or email
+            return `https://api.dicebear.com/9.x/croodles/svg?seed=${this.username || this.email || 'default'}`;
+        },
     },
     // ✅ User photo gallery
     photos: [{
