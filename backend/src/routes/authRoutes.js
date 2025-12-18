@@ -47,7 +47,7 @@ router.post("/register", async (req, res) => {
       return res.status(400).json({ message: "Username already used" });
     }
 
-    const profileImage = `https://api.dicebear.com/9.x/croodles/png?seed=${username}&size=200`;
+    const profileImage = `https://api.dicebear.com/9.x/croodles/png?seed=${username}`;
 
     const user = new User({
       username,

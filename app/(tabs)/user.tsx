@@ -69,38 +69,32 @@ export default function ProfileScreen() {
   });
 
   const getProfileImageUrl = (profileImage?: string) => {
-    console.log("=== DEBUG PROFILE IMAGE ===");
-    console.log("Input profileImage:", profileImage);
-    console.log("User object:", user);
-    
-    // If no profile image or empty string, use UI Avatars (PNG format - works in React Native!)
-    if (!profileImage || profileImage.trim() === "") {
-      const name = user?.username || user?.email || 'User';
-      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF8C00&color=fff&size=200&bold=true`;
-      console.log("Generated avatar URL:", avatarUrl);
-      return avatarUrl;
-    }
-    
-    // ⚠️ React Native Image component cannot display SVG from URLs!
-    // If it's a dicebear SVG URL, convert to UI Avatars PNG
-    if (profileImage.includes('dicebear.com') || profileImage.endsWith('.svg')) {
-      const name = user?.username || user?.email || 'User';
-      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF8C00&color=fff&size=200&bold=true`;
-      console.log("⚠️ Converted SVG to PNG avatar:", avatarUrl);
-      return avatarUrl;
-    }
-    
-    // If it's already a full URL (http/https), return it
-    if (profileImage.startsWith('http')) {
-      console.log("Using full URL:", profileImage);
-      return profileImage;
-    }
-    
-    // Otherwise, it's a relative path from our server
-    const fullUrl = `http://192.168.100.19:3000${profileImage}`;
-    console.log("Using relative path, full URL:", fullUrl);
-    return fullUrl;
-  };
+  console.log("=== DEBUG PROFILE IMAGE ===");
+  console.log("Input profileImage:", profileImage);
+  console.log("User object:", user);
+  
+  // If no profile image or empty string, use DiceBear PNG (works in React Native!)
+  if (!profileImage || profileImage.trim() === "") {
+    const name = user?.username || user?.email || 'User';
+    const avatarUrl = `https://api.dicebear.com/9.x/croodles/png?seed=${encodeURIComponent(name)}&size=200`;
+    console.log("Generated DiceBear PNG avatar:", avatarUrl);
+    return avatarUrl;
+  }
+  
+  // ✅ REMOVED: No longer need to convert dicebear URLs since they're now PNG
+  // dicebear.com PNG URLs work perfectly in React Native!
+  
+  // If it's already a full URL (http/https), return it
+  if (profileImage.startsWith('http')) {
+    console.log("Using full URL:", profileImage);
+    return profileImage;
+  }
+  
+  // Otherwise, it's a relative path from our server
+  const fullUrl = `http://192.168.100.19:3000${profileImage}`;
+  console.log("Using relative path, full URL:", fullUrl);
+  return fullUrl;
+};
 
   const fetchUserData = async () => {
     try {

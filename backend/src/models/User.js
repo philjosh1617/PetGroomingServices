@@ -21,7 +21,7 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: function() {
             // Generate unique dicebear avatar based on username or email
-            return `https://api.dicebear.com/9.x/croodles/png?seed=${this.username || this.email || 'default'}&size=200`;
+            return `https://api.dicebear.com/9.x/croodles/png?seed=${this.username || this.email || 'default'}`;
         },
     },
     // ✅ User photo gallery
