@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router'; // ✅ Add useLocalSearchParams
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +21,9 @@ type Pet = { _id: string; name: string; profileImage: string };
 
 const ServicesScreen = () => {
   const { updateAppointmentData } = useAppointmentContext();
+  const params = useLocalSearchParams(); // ✅ Get URL params
+  const preSelectedServiceId = params.preSelectedService as string | undefined;
+
   const [navigationItems, setNavigationItems] = useState<NavItem[]>([
     { id: '1', label: 'Services', active: true },
     { id: '2', label: 'Date', active: false },
@@ -30,7 +33,7 @@ const ServicesScreen = () => {
   ]);
 
   const [pets, setPets] = useState<Pet[]>([]);
-  const [searchQuery, setSearchQuery] = useState(''); // ✅ NEW: Search state
+  const [searchQuery, setSearchQuery] = useState('');
   const [services, setServices] = useState<Service[]>([
     {
       id: '1',
@@ -92,11 +95,22 @@ const ServicesScreen = () => {
 
   const [showPetSelection, setShowPetSelection] = useState<string | null>(null);
 
-  // ✅ NEW: Filter services based on search query
   const filteredServices = services.filter(service => 
     service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
     service.description.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // ✅ NEW: Automatically open pet selection for pre-selected service
+  useEffect(() => {
+    if (preSelectedServiceId && pets.length > 0) {
+      // Small delay to ensure UI is ready
+      setTimeout(() => {
+        setShowPetSelection(preSelectedServiceId);
+        // Scroll to the service (optional enhancement)
+        setSearchQuery(''); // Clear search to show all services
+      }, 300);
+    }
+  }, [preSelectedServiceId, pets]);
 
   // Fetch user's pets
   useEffect(() => {

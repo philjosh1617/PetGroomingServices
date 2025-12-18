@@ -132,6 +132,26 @@ const Home = () => {
     router.push("/PetProfile/aboutpet");
   };
 
+  // ✅ NEW: Map service names to service IDs in Services screen
+  const serviceNameToId: { [key: string]: string } = {
+    "Basic Grooming": "2", // Bath & Blow Dry
+    "Flea & Tick Treatment": "1", // Flea Treatment
+    "Nail Trimming": "4",
+    "Teeth Cleaning": "3", // Teeth Brushing
+  };
+
+  // ✅ NEW: Handle popular service click
+  const handleServiceClick = (serviceName: string) => {
+    const serviceId = serviceNameToId[serviceName];
+    if (serviceId) {
+      // Navigate to Services screen with pre-selected service
+      router.push({
+        pathname: "/Services",
+        params: { preSelectedService: serviceId }
+      });
+    }
+  };
+
   const services = [
     { id: 1, name: "Basic Grooming", icon: "cut", price: "₱350" },
     { id: 2, name: "Flea & Tick Treatment", icon: "bug", price: "₱650" },
@@ -297,7 +317,10 @@ const Home = () => {
             <Text style={styles.promoText}>
               Get 20% off on your first grooming session!
             </Text>
-            <TouchableOpacity style={styles.promoButton}>
+            <TouchableOpacity 
+              style={styles.promoButton}
+              onPress={() => router.push("/(tabs)/booking")}
+            >
               <Text style={styles.promoButtonText}>Book Now</Text>
             </TouchableOpacity>
           </LinearGradient>
@@ -309,13 +332,18 @@ const Home = () => {
             style={styles.servicesContainer}
           >
             {services.map((service) => (
-              <View key={service.id} style={styles.serviceCard}>
+              <TouchableOpacity 
+                key={service.id} 
+                style={styles.serviceCard}
+                onPress={() => handleServiceClick(service.name)}
+                activeOpacity={0.7}
+              >
                 <View style={styles.serviceIcon}>
                   <Ionicons name={service.icon as any} size={28} color="#FF8C00" />
                 </View>
                 <Text style={styles.serviceName}>{service.name}</Text>
                 <Text style={styles.servicePrice}>{service.price}</Text>
-              </View>
+              </TouchableOpacity>
             ))}
           </ScrollView>
 
