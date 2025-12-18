@@ -41,7 +41,7 @@ const createAdmin = async () => {
       email: ADMIN_EMAIL,
       password: ADMIN_PASSWORD, // Will be hashed by the pre-save hook
       isAdmin: true,
-      profileImage: 'https://api.dicebear.com/9.x/croodles/svg?seed=admin',
+      profileImage: 'https://api.dicebear.com/9.x/croodles/png?seed=admin&size=200',
     });
 
     await admin.save();

@@ -31,7 +31,8 @@ const migrateProfileImages = async () => {
 
     for (const user of usersWithoutImage) {
       // Generate dicebear avatar based on username
-      const newProfileImage = `https://api.dicebear.com/9.x/croodles/svg?seed=${user.username}`;
+      const newProfileImage = `https://api.dicebear.com/9.x/croodles/png?seed=${user.username}&size=200`;
+
       
       user.profileImage = newProfileImage;
       await user.save();

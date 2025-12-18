@@ -73,11 +73,20 @@ export default function ProfileScreen() {
     console.log("Input profileImage:", profileImage);
     console.log("User object:", user);
     
-    // If no profile image or empty string, use UI Avatars
+    // If no profile image or empty string, use UI Avatars (PNG format - works in React Native!)
     if (!profileImage || profileImage.trim() === "") {
       const name = user?.username || user?.email || 'User';
       const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF8C00&color=fff&size=200&bold=true`;
       console.log("Generated avatar URL:", avatarUrl);
+      return avatarUrl;
+    }
+    
+    // ⚠️ React Native Image component cannot display SVG from URLs!
+    // If it's a dicebear SVG URL, convert to UI Avatars PNG
+    if (profileImage.includes('dicebear.com') || profileImage.endsWith('.svg')) {
+      const name = user?.username || user?.email || 'User';
+      const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=FF8C00&color=fff&size=200&bold=true`;
+      console.log("⚠️ Converted SVG to PNG avatar:", avatarUrl);
       return avatarUrl;
     }
     
