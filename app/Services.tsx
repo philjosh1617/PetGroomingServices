@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, SafeAreaView, Alert, TextInput } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
@@ -30,6 +30,7 @@ const ServicesScreen = () => {
   ]);
 
   const [pets, setPets] = useState<Pet[]>([]);
+  const [searchQuery, setSearchQuery] = useState(''); // ✅ NEW: Search state
   const [services, setServices] = useState<Service[]>([
     {
       id: '1',
@@ -90,6 +91,12 @@ const ServicesScreen = () => {
   ]);
 
   const [showPetSelection, setShowPetSelection] = useState<string | null>(null);
+
+  // ✅ NEW: Filter services based on search query
+  const filteredServices = services.filter(service => 
+    service.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    service.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   // Fetch user's pets
   useEffect(() => {
@@ -229,130 +236,160 @@ const ServicesScreen = () => {
         ))}
       </View>
 
+      {/* ✅ NEW: Search Bar */}
+      <View style={styles.searchContainer}>
+        <Ionicons name="search" size={20} color="#999" style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search services..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholderTextColor="#999"
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')} style={styles.clearButton}>
+            <Ionicons name="close-circle" size={20} color="#999" />
+          </TouchableOpacity>
+        )}
+      </View>
+
       <ScrollView 
         contentContainerStyle={[
           styles.scrollContent,
           hasSelectedServices && styles.scrollContentWithFooter
         ]}
       >
-        <Text style={styles.sectionTitle}>Types of Services</Text>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Types of Services</Text>
+          <Text style={styles.resultsCount}>
+            {filteredServices.length} {filteredServices.length === 1 ? 'service' : 'services'}
+          </Text>
+        </View>
         
-        {services.map((service) => (
-          <View key={service.id} style={styles.serviceCard}>
-            <View style={styles.serviceContent}>
-              <View style={styles.serviceInfo}>
-                <Text style={styles.serviceTitle}>{service.title}</Text>
-                <Text style={styles.serviceDescription}>{service.description}</Text>
-                
-                <View style={styles.priceContainer}>
-                  <Text style={styles.servicePrice}>₱{service.price} per pet</Text>
-                  {service.quantity > 0 && (
-                    <Text style={styles.serviceSubtotal}>
-                      Subtotal: ₱{calculateServiceSubtotal(service)}
-                    </Text>
+        {filteredServices.length === 0 ? (
+          <View style={styles.noResultsContainer}>
+            <Ionicons name="search-outline" size={64} color="#ccc" />
+            <Text style={styles.noResultsText}>No services found</Text>
+            <Text style={styles.noResultsSubtext}>Try searching with different keywords</Text>
+          </View>
+        ) : (
+          filteredServices.map((service) => (
+            <View key={service.id} style={styles.serviceCard}>
+              <View style={styles.serviceContent}>
+                <View style={styles.serviceInfo}>
+                  <Text style={styles.serviceTitle}>{service.title}</Text>
+                  <Text style={styles.serviceDescription}>{service.description}</Text>
+                  
+                  <View style={styles.priceContainer}>
+                    <Text style={styles.servicePrice}>₱{service.price} per pet</Text>
+                    {service.quantity > 0 && (
+                      <Text style={styles.serviceSubtotal}>
+                        Subtotal: ₱{calculateServiceSubtotal(service)}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+
+                <View style={styles.petProfilesContainer}>
+                  {service.selectedPets.slice(0, 3).map((petId, index) => {
+                    const pet = getPetById(petId);
+                    if (!pet) return null;
+                    
+                    return (
+                      <View key={petId} style={styles.petProfile}>
+                        <TouchableOpacity 
+                          style={styles.profileImageContainer}
+                          onPress={() => handleAddPetPress(service.id)}
+                        >
+                          <View style={styles.profileImage}>
+                            <Text style={styles.petEmoji}>🐶</Text>
+                          </View>
+                          <Text style={styles.tapToChange}>TAP TO CHANGE</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.petName}>{pet.name}</Text>
+                        {index === 2 && service.selectedPets.length > 3 && (
+                          <View style={styles.morePetsBadge}>
+                            <Text style={styles.morePetsText}>+{service.selectedPets.length - 3}</Text>
+                          </View>
+                        )}
+                      </View>
+                    );
+                  })}
+                  
+                  {service.selectedPets.length === 0 && (
+                    <TouchableOpacity 
+                      style={styles.emptyPetProfile}
+                      onPress={() => handleAddPetPress(service.id)}
+                    >
+                      <View style={styles.profileImageContainer}>
+                        <View style={[styles.profileImage, styles.emptyProfileImage]}>
+                          <Text style={styles.plusIcon}>+</Text>
+                        </View>
+                        <Text style={styles.tapToChange}>TAP TO ADD PET</Text>
+                      </View>
+                      <Text style={styles.emptyPetText}>Add Pet</Text>
+                    </TouchableOpacity>
                   )}
                 </View>
               </View>
 
-              <View style={styles.petProfilesContainer}>
-                {service.selectedPets.slice(0, 3).map((petId, index) => {
-                  const pet = getPetById(petId);
-                  if (!pet) return null;
+              {showPetSelection === service.id && (
+                <View style={styles.petSelectionModal}>
+                  <Text style={styles.petSelectionTitle}>Select Pets for {service.title}</Text>
+                  <Text style={styles.petSelectionSubtitle}>Choose from your registered pets</Text>
                   
-                  return (
-                    <View key={petId} style={styles.petProfile}>
-                      <TouchableOpacity 
-                        style={styles.profileImageContainer}
-                        onPress={() => handleAddPetPress(service.id)}
+                  <View style={styles.petsGrid}>
+                    {pets.map((pet) => (
+                      <TouchableOpacity
+                        key={pet._id}
+                        style={[
+                          styles.petOption,
+                          service.selectedPets.includes(pet._id) && styles.petOptionSelected
+                        ]}
+                        onPress={() => handlePetSelect(service.id, pet._id)}
                       >
-                        <View style={styles.profileImage}>
-                          <Text style={styles.petEmoji}>🐶</Text>
+                        <View style={styles.petOptionImage}>
+                          <Text style={styles.petOptionEmoji}>🐶</Text>
                         </View>
-                        <Text style={styles.tapToChange}>TAP TO CHANGE</Text>
+                        <Text style={styles.petOptionName}>{pet.name}</Text>
+                        {service.selectedPets.includes(pet._id) && (
+                          <View style={styles.selectedIndicator}>
+                            <Text style={styles.selectedIndicatorText}>✓</Text>
+                          </View>
+                        )}
                       </TouchableOpacity>
-                      <Text style={styles.petName}>{pet.name}</Text>
-                      {index === 2 && service.selectedPets.length > 3 && (
-                        <View style={styles.morePetsBadge}>
-                          <Text style={styles.morePetsText}>+{service.selectedPets.length - 3}</Text>
-                        </View>
-                      )}
-                    </View>
-                  );
-                })}
-                
-                {service.selectedPets.length === 0 && (
-                  <TouchableOpacity 
-                    style={styles.emptyPetProfile}
-                    onPress={() => handleAddPetPress(service.id)}
-                  >
-                    <View style={styles.profileImageContainer}>
-                      <View style={[styles.profileImage, styles.emptyProfileImage]}>
-                        <Text style={styles.plusIcon}>+</Text>
-                      </View>
-                      <Text style={styles.tapToChange}>TAP TO ADD PET</Text>
-                    </View>
-                    <Text style={styles.emptyPetText}>Add Pet</Text>
-                  </TouchableOpacity>
-                )}
-              </View>
-            </View>
-
-            {showPetSelection === service.id && (
-              <View style={styles.petSelectionModal}>
-                <Text style={styles.petSelectionTitle}>Select Pets for {service.title}</Text>
-                <Text style={styles.petSelectionSubtitle}>Choose from your registered pets</Text>
-                
-                <View style={styles.petsGrid}>
-                  {pets.map((pet) => (
-                    <TouchableOpacity
-                      key={pet._id}
-                      style={[
-                        styles.petOption,
-                        service.selectedPets.includes(pet._id) && styles.petOptionSelected
-                      ]}
-                      onPress={() => handlePetSelect(service.id, pet._id)}
+                    ))}
+                    
+                    <TouchableOpacity 
+                      style={styles.addNewPetOption}
+                      onPress={handleAddNewPet}
                     >
-                      <View style={styles.petOptionImage}>
-                        <Text style={styles.petOptionEmoji}>🐶</Text>
+                      <View style={styles.addNewPetIcon}>
+                        <Text style={styles.addNewPetText}>+</Text>
                       </View>
-                      <Text style={styles.petOptionName}>{pet.name}</Text>
-                      {service.selectedPets.includes(pet._id) && (
-                        <View style={styles.selectedIndicator}>
-                          <Text style={styles.selectedIndicatorText}>✓</Text>
-                        </View>
-                      )}
+                      <Text style={styles.addNewPetLabel}>Add New</Text>
                     </TouchableOpacity>
-                  ))}
+                  </View>
                   
-                  <TouchableOpacity 
-                    style={styles.addNewPetOption}
-                    onPress={handleAddNewPet}
-                  >
-                    <View style={styles.addNewPetIcon}>
-                      <Text style={styles.addNewPetText}>+</Text>
-                    </View>
-                    <Text style={styles.addNewPetLabel}>Add New</Text>
-                  </TouchableOpacity>
+                  <View style={styles.modalButtons}>
+                    <TouchableOpacity 
+                      style={styles.cancelSelectionButton}
+                      onPress={() => setShowPetSelection(null)}
+                    >
+                      <Text style={styles.cancelSelectionText}>Cancel</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                      style={styles.doneSelectionButton}
+                      onPress={() => setShowPetSelection(null)}
+                    >
+                      <Text style={styles.doneSelectionText}>Done</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
-                
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity 
-                    style={styles.cancelSelectionButton}
-                    onPress={() => setShowPetSelection(null)}
-                  >
-                    <Text style={styles.cancelSelectionText}>Cancel</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity 
-                    style={styles.doneSelectionButton}
-                    onPress={() => setShowPetSelection(null)}
-                  >
-                    <Text style={styles.doneSelectionText}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </View>
-        ))}
+              )}
+            </View>
+          ))
+        )}
       </ScrollView>
 
       {hasSelectedServices && (
@@ -407,9 +444,72 @@ const styles = StyleSheet.create({
   navItemActive: { borderBottomWidth: 2, borderBottomColor: '#DB6309' },
   navText: { fontSize: 14, color: '#000000ff', fontWeight: '500' },
   navTextActive: { color: '#DB6309', fontWeight: 'bold' },
+  
+  // ✅ NEW: Search bar styles
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#f8f8f8',
+    marginHorizontal: 16,
+    marginVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: '#333',
+  },
+  clearButton: {
+    padding: 4,
+  },
+  
   scrollContent: { flexGrow: 1, padding: 16, paddingBottom: 16 },
   scrollContentWithFooter: { paddingBottom: 140 },
-  sectionTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginBottom: 16, marginTop: 8 },
+  
+  // ✅ NEW: Section header with results count
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 8,
+  },
+  sectionTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold', 
+    color: '#333',
+  },
+  resultsCount: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  
+  // ✅ NEW: No results styles
+  noResultsContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 60,
+  },
+  noResultsText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#999',
+    marginTop: 16,
+  },
+  noResultsSubtext: {
+    fontSize: 14,
+    color: '#bbb',
+    marginTop: 8,
+  },
+  
   serviceCard: {
     backgroundColor: '#f9f9f9',
     padding: 16,
