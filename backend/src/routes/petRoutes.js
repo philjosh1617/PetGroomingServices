@@ -61,9 +61,9 @@ router.post(
         return res.status(400).json({ message: "Required fields missing" });
       }
 
-      // ✅ Fix: Ensure proper path construction with forward slash
+    
       const imageUrl = req.file
-        ? `http://192.168.100.19:3000/uploads/pets/${req.file.filename}` // Note the slash after 'pets'
+        ? `http://192.168.100.19:3000/uploads/pets/${req.file.filename}` 
         : "";
 
       console.log("📷 Image uploaded:", {
@@ -101,7 +101,7 @@ router.post(
 router.put(
   "/:petId",
   authMiddleware,
-  upload.single("profileImage"), // optional image update
+  upload.single("profileImage"), 
   async (req, res) => {
     try {
       const { petId } = req.params;

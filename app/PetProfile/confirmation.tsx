@@ -64,8 +64,8 @@ const PetProfileSummaryScreen = () => {
 
         formData.append('profileImage', {
           uri: petData.profileImage,
-          name: `pet.${fileType}`, // Use actual file type
-          type: `image/${fileType}`, // Match the actual file type
+          name: `pet.${fileType}`,
+          type: `image/${fileType}`, 
         } as any);
 
         console.log('📷 Image added to FormData:', {
